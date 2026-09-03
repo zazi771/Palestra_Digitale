@@ -4,18 +4,45 @@ project(PALESTRA_DIGITALE)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Aggiungi la directory corrente come percorso per gli header
-include_directories(${CMAKE_SOURCE_DIR})
+add_subdirectory(libs/SQLiteCpp)
 
 # Crea l'eseguibile con main.cpp e sqlite3.c
 add_executable(PALESTRA_DIGITALE
     main.cpp
-    sqlite3.c
+    Database.cpp
+    Database.h
+    models/Utente.cpp
+    models/Utente.h
+    models/Cartella_clinica.cpp
+    models/Cartella_clinica.h
+    models/Certificazione.cpp
+    models/Certificazione.h
+    models/Cibo.cpp
+    models/Cibo.h
+    models/Esercizio.cpp
+    models/Esercizio.h
+    models/Feedback.cpp
+    models/Feedback.h
+    models/Pasto.cpp
+    models/Pasto.h
+    models/Pasto_cibo.cpp
+    models/Pasto_cibo.h
+    models/Piano_alimentare.cpp
+    models/Piano_alimentare.h
+    models/Programma_allenamento.cpp
+    models/Programma_allenamento.h
+    models/Programma_esercizio.cpp
+    models/Programma_esercizio.h
+    models/Sessione.cpp
+    models/Sessione.h
+    models/Utente_programma.cpp
+    models/Utente_programma.h
 )
 
-# Linka le librerie necessarie per SQLite
-find_package(Threads REQUIRED)
-target_link_libraries(PALESTRA_DIGITALE PRIVATE Threads::Threads)
+# Aggiungi la directory corrente come percorso per gli header
+target_include_directories(PALESTRA_DIGITALE PRIVATE ${CMAKE_SOURCE_DIR})
+
+target_link_libraries(PALESTRA_DIGITALE SQLiteCpp)
 
 # Su macOS, aggiungi CoreFoundation
 if (APPLE)
