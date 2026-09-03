@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bud Spencer — Palestra digitale</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styleHome.css">
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="nav-links">
+            <a href="#corsi">Corsi</a>
+            <a href="#programmi">Programmi</a>
+            <a href="#community">Community</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-ghost" onclick="openModal('login')">Accedi</button>
+            <button class="btn btn-solid" onclick="openModal('signup')">Inizia da qui</button>
+        </div>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="eyebrow"><span class="rule"></span>Palestra digitale</div>
+    <div class="hero-brand">
+        <h1>Ogni ripetizione<br>ha un <em>battito.</em><br>Misuralo.</h1>
+        <img src="img/logo.jpg" alt="Logo" class="hero-logo">
+    </div>
+
+    <p class="lead">Palestra digitale con Bud Spencer collega la sala pesi ai tuoi dati: prenoti la lezione, il coach digitale segue il tuo passo, i progressi restano scritti — non nella memoria, nei numeri.</p>
+    <div class="hero-actions">
+        <button class="btn btn-solid" onclick="openModal('signup')">Crea il tuo profilo</button>
+        <a class="link-inline" href="#programmi">Guarda i programmi →</a>
+    </div>
+
+    <div class="pulse-strip">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="pg" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#ff4b3e" stop-opacity="0"/>
+                    <stop offset="50%" stop-color="#ff4b3e" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#ff4b3e" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <path d="M0,60 L80,60 L100,60 L115,20 L130,100 L145,60 L200,60 L280,60 L300,60 L315,20 L330,100 L345,60 L400,60 L480,60 L500,60 L515,20 L530,100 L545,60 L600,60 L680,60 L700,60 L715,20 L730,100 L745,60 L800,60 L880,60 L900,60 L915,20 L930,100 L945,60 L1000,60 L1080,60 L1100,60 L1115,20 L1130,100 L1145,60 L1200,60"
+                  fill="none" stroke="url(#pg)" stroke-width="2"/>
+            <path d="M1200,60 L1280,60 L1300,60 L1315,20 L1330,100 L1345,60 L1400,60 L1480,60 L1500,60 L1515,20 L1530,100 L1545,60 L1600,60 L1680,60 L1700,60 L1715,20 L1730,100 L1745,60 L1800,60 L1880,60 L1900,60 L1915,20 L1930,100 L1945,60 L2000,60 L2080,60 L2100,60 L2115,20 L2130,100 L2145,60 L2200,60 L2280,60 L2300,60 L2315,20 L2330,100 L2345,60 L2400,60"
+                  fill="none" stroke="url(#pg)" stroke-width="2"/>
+        </svg>
+        <div class="pulse-stats">
+            <div class="pulse-stat">
+                <div class="num"><span>128</span> bpm</div>
+                <div class="lbl">Picco medio sessione</div>
+            </div>
+            <div class="pulse-stat">
+                <div class="num">42</div>
+                <div class="lbl">Lezioni live questa settimana</div>
+            </div>
+            <div class="pulse-stat">
+                <div class="num">6<span>.2k</span></div>
+                <div class="lbl">Allenamenti tracciati oggi</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="corsi">
+    <div class="section-head">
+        <h2>Non un'app che conta i passi. Un coach che li interpreta.</h2>
+        <p>Sensori, prenotazioni e programmi in un solo posto — pensato per chi si allena con costanza, non per chi vuole solo aprire un'app.</p>
+    </div>
+    <div class="feature-grid">
+        <div class="feature">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 8 4-16 2 8h6"/></svg>
+            <h3>Battito in tempo reale</h3>
+            <p>Fascia o smartwatch collegati mostrano la tua frequenza cardiaca durante ogni lezione, in sala e a casa.</p>
+        </div>
+        <div class="feature">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+            <h3>Prenota il posto</h3>
+            <p>Corsi live e in sala si prenotano dall'app: niente lista d'attesa scritta a mano sulla lavagna.</p>
+        </div>
+        <div class="feature">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
+            <h3>Programmi che si adattano</h3>
+            <p>Il carico si aggiorna in base a come recuperi, non a un piano fisso stampato il primo giorno.</p>
+        </div>
+        <div class="feature">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.4"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M14.5 20c0-2.4 1.7-4 4-4"/></svg>
+            <h3>Community reale</h3>
+            <p>Sfide di gruppo e classifiche settimanali con le persone che vedi davvero in sala.</p>
+        </div>
+    </div>
+</section>
+
+<section class="tempo" id="programmi">
+    <div class="section wrap" style="padding-top:80px;padding-bottom:80px;">
+        <div class="section-head" style="margin-bottom:20px;">
+            <h2>Tre andature. Scegli la tua.</h2>
+            <p>Ogni programma ha un ritmo diverso — non un livello, un battito.</p>
+        </div>
+        <div>
+            <div class="tempo-row">
+                <div class="tempo-bpm">90–110 BPM</div>
+                <div class="tempo-name">Base</div>
+                <div class="tempo-desc">Tecnica, mobilità e costanza. Per chi inizia o rientra dopo una pausa.</div>
+            </div>
+            <div class="tempo-row">
+                <div class="tempo-bpm">120–145 BPM</div>
+                <div class="tempo-name">Spinta</div>
+                <div class="tempo-desc">Forza e condizionamento, tre sedute a settimana con carico progressivo.</div>
+            </div>
+            <div class="tempo-row">
+                <div class="tempo-bpm">150–175 BPM</div>
+                <div class="tempo-name">Soglia</div>
+                <div class="tempo-desc">Alta intensità guidata dal coach digitale in base ai tuoi dati di recupero.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-block" id="community">
+    <div class="eyebrow" style="justify-content:center;"><span class="rule"></span>Pronto quando lo sei tu</div>
+    <h2>Il primo allenamento<br>è gratis. Il ritmo, poi, è tuo.</h2>
+    <button class="btn btn-solid" style="padding:16px 32px;font-size:16px;" onclick="openModal('signup')">Crea il tuo profilo</button>
+</section>
+
+<footer>
+    <div class="logo" style="font-size:20px;"><span class="dot"></span>Bud Spencer - Palestra Digitale</div>
+    <div>© 2026 Bud Spencer — Palestra digitale. Bari, IT.</div>
+</footer>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="tabs">
+            <div class="tab" id="tab-login" onclick="switchTab('login')">Accedi</div>
+            <div class="tab" id="tab-signup" onclick="switchTab('signup')">Registrati</div>
+        </div>
+
+        <div class="pane" id="pane-login">
+            <h3 class="display">Bentornato.</h3>
+            <div class="sub">Accedi per vedere i tuoi allenamenti e le prenotazioni.</div>
+            <form onsubmit="return handleSubmit(event, 'Accesso effettuato')">
+                <div class="field">
+                    <label for="l-utente">Utente</label>
+                    <input id="l-utente" type="text" placeholder="Nome utente" required>
+                </div>
+                <div class="field">
+                    <label for="l-pass">Password</label>
+                    <input id="l-pass" type="password" placeholder="••••••••" required>
+                </div>
+                <button class="btn btn-solid" type="submit">Accedi</button>
+            </form>
+            <div class="modal-foot">Non hai un profilo? <button onclick="switchTab('signup')">Registrati</button></div>
+        </div>
+
+        <div class="pane" id="pane-signup">
+            <h3 class="display">Crea il tuo profilo.</h3>
+            <div class="sub">Un minuto per iscriverti, il primo allenamento è gratis.</div>
+            <form onsubmit="return handleSubmit(event, 'Profilo creato')">
+                <div class="field">
+                    <label for="s-name">Nome</label>
+                    <input id="s-name" type="text" placeholder="Il tuo nome" required>
+                </div>
+                <div class="field">
+                    <label for="s-cognome">Cognome</label>
+                    <input id="s-cognome" type="text" placeholder="Il tuo cognome" required>
+                </div>
+                <div class="field">
+                    <label for="s-email">Email</label>
+                    <input id="s-email" type="email" placeholder="nome@esempio.it" required>
+                </div>
+
+                <div class="field">
+                    <label>Sesso</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="sesso" value="Maschio" checked>
+                            Maschio
+                        </label>
+                        <label>
+                            <input type="radio" name="sesso" value="Femmina">
+                            Femmina
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="s-dataNascita">Data Nascita</label>
+                    <input id="s-dataNascita" type="date" required max="2008-12-31">
+                </div>
+
+                <div class="field">
+                    <div class="ruolo">
+                        <label for="s-ruolo">Ruolo</label>
+                        <select id="s-ruolo" required>
+                            <option value="cliente" selected>Cliente</option>
+                            <option value="trainer">Trainer</option>
+                            <option value="nutrizionista">Nutrizionista</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="s-pass">Password</label>
+                    <input id="s-pass" type="password" placeholder="Minimo 8 caratteri" required minlength="8">
+                </div>
+                <button class="btn btn-solid" type="submit">Crea profilo</button>
+            </form>
+            <div class="modal-foot">Hai già un profilo? <button onclick="switchTab('login')">Accedi</button></div>
+        </div>
+    </div>
+</div>
+
+
+<script src="home.js"></script>
+</body>
+</html>

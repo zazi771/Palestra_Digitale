@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bud Spencer — Area Nutrizionista</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styleHome.css">
+    <link rel="stylesheet" href="styleAreaNutrizionista.css">
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo"><span class="dot"></span>Bud Spencer — Area Nutrizionista</div>
+        <div class="nav-actions">
+            <span class="trainer-chip" id="nutriChip" hidden>
+                <span class="chip-dot"></span>
+                <span id="nutriChipText"></span>
+            </span>
+        </div>
+    </nav>
+</header>
+
+<!-- ===================== GATE: CERTIFICAZIONE ===================== -->
+<section class="gate" id="gate">
+    <div class="gate-wrap">
+        <div class="eyebrow"><span class="rule"></span>Prima di iniziare</div>
+        <h1 class="gate-title">Verifica le tue<br><em>credenziali.</em></h1>
+        <p class="gate-lead">Per seguire clienti sulla piattaforma dobbiamo prima registrare la tua certificazione professionale. Ti servono due minuti: dati della certificazione e il tuo CV.</p>
+        <br><br>
+        <form id="certForm" class="cert-form" novalidate style="max-width:480px; margin:0 auto; width:100%;">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="c-professione">Professione</label>
+                    <select id="c-professione" required style="color: white; background-color: black">
+                        <option value="nutrizionista" selected>Nutrizionista</option>
+                        <option value="biologo-nutrizionista">Biologo Nutrizionista</option>
+                        <option value="dietista">Dietista</option>
+                        <option value="medico-nutrizionista">Medico Nutrizionista</option>
+                    </select>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="c-certificazione">Certificazione (PDF)</label>
+                    <label class="file-drop" id="certificazioneDrop" for="c-certificazione">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                        <span id="certificazioneDropText">Trascina qui la tua certificazione o clicca per selezionarla</span>
+                    </label>
+                    <input id="c-certificazione" type="file" accept=".pdf,.doc,.docx" required hidden>
+                </div>
+
+                <div class="field">
+                    <label for="c-codice">Codice certificazione</label>
+                    <input id="c-codice" type="text" placeholder="Es. NUTR-2024-00123" required>
+                </div>
+
+                <div class="field">
+                    <label for="c-ente">Ente di rilascio</label>
+                    <input id="c-ente" type="text" placeholder="Es. Ordine dei Biologi, ANDID" required>
+                </div>
+
+                <div class="field field-half">
+                    <label for="c-rilascio">Data rilascio</label>
+                    <input id="c-rilascio" type="date" required>
+                </div>
+
+                <div class="field field-half">
+                    <label for="c-scadenza">Data scadenza</label>
+                    <input id="c-scadenza" type="date" required>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="c-cv">Curriculum Vitae (PDF)</label>
+                    <label class="file-drop" id="cvDrop" for="c-cv">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                        <span id="cvDropText">Trascina qui il tuo CV o clicca per selezionarlo</span>
+                    </label>
+                    <input id="c-cv" type="file" accept=".pdf,.doc,.docx" required hidden>
+                </div>
+            </div>
+
+            <p class="form-error" id="certError" hidden>Controlla i campi: la data di scadenza deve essere successiva alla data di rilascio.</p>
+
+            <button class="btn btn-solid" type="submit">Conferma certificazione e continua</button>
+        </form>
+    </div>
+</section>
+
+<!-- ===================== DASHBOARD ===================== -->
+<section class="dash wrap" id="dashboard" hidden>
+
+    <div class="dash-head">
+        <div>
+            <div class="eyebrow"><span class="rule"></span>I tuoi clienti</div>
+            <h2>Chi segui oggi nella tua nutrizione.</h2>
+        </div>
+        <p class="dash-sub">Seleziona un cliente per creare un nuovo piano alimentare o rivedere quelli già assegnati.</p>
+    </div>
+
+    <div class="table-card">
+        <table class="clients-table">
+            <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Iscritto dal</th>
+                <th>Piani attivi</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ===================== MODAL: PIANO ALIMENTARE ===================== -->
+<div class="overlay" id="planOverlay">
+    <div class="modal modal-wide">
+        <button class="modal-close" id="planClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Nuovo piano per <span id="planClientName">—</span></div>
+        <h3 class="display">Costruisci il piano alimentare.</h3>
+
+        <form id="planForm" novalidate>
+            <div class="form-grid">
+                <div class="field field-wide">
+                    <label for="p-nome">Nome piano</label>
+                    <input id="p-nome" type="text" placeholder="Es. Piano bilanciato 2000 kcal" required>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="p-descrizione">Descrizione</label>
+                    <textarea id="p-descrizione" rows="3" placeholder="Note generali, obiettivo calorico, indicazioni..." required></textarea>
+                </div>
+            </div>
+
+            <div class="ex-head">
+                <h4>Pasti del piano</h4>
+                <button type="button" class="btn btn-ghost btn-small" id="addPasto">+ Aggiungi pasto</button>
+            </div>
+
+            <div id="pastoList" class="exercise-list"></div>
+            <p class="form-hint" id="noPastoHint">Nessun pasto ancora. Aggiungine almeno uno per salvare il piano.</p>
+
+            <p class="form-error" id="planError" hidden>Controlla i campi del piano, di ogni pasto e di ogni alimento prima di salvare.</p>
+
+            <button class="btn btn-solid" type="submit">Salva piano</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL: VEDI PIANI ===================== -->
+<div class="overlay" id="viewOverlay">
+    <div class="modal modal-wide">
+        <button class="modal-close" id="viewClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Piani di <span id="viewClientName">—</span></div>
+        <h3 class="display">Storico piani alimentari.</h3>
+        <div id="plansList" class="plans-list"></div>
+    </div>
+</div>
+
+<!-- template pasto (usato da JS) -->
+<template id="pastoTemplate">
+    <div class="exercise-card" data-pasto>
+        <div class="exercise-card-head">
+            <span class="ex-order" data-order>1</span>
+            <div class="ex-move">
+                <button type="button" class="ex-move-btn" data-move="up" title="Sposta su">↑</button>
+                <button type="button" class="ex-move-btn" data-move="down" title="Sposta giù">↓</button>
+            </div>
+            <button type="button" class="ex-remove" data-remove title="Rimuovi pasto">✕</button>
+        </div>
+
+        <div class="form-grid">
+            <div class="field">
+                <label>Giorno</label>
+                <select data-field="giorno" required>
+                    <option value="" disabled selected>Seleziona</option>
+                    <option>Lunedì</option>
+                    <option>Martedì</option>
+                    <option>Mercoledì</option>
+                    <option>Giovedì</option>
+                    <option>Venerdì</option>
+                    <option>Sabato</option>
+                    <option>Domenica</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Tipo pasto</label>
+                <select data-field="tipo" required>
+                    <option value="" disabled selected>Seleziona</option>
+                    <option>Colazione</option>
+                    <option>Spuntino mattutino</option>
+                    <option>Pranzo</option>
+                    <option>Spuntino pomeridiano</option>
+                    <option>Cena</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="food-head">
+            <label class="food-label">Alimenti</label>
+            <button type="button" class="btn btn-ghost btn-small" data-add-food>+ Aggiungi alimento</button>
+        </div>
+        <div class="food-list" data-food-list></div>
+        <p class="form-hint food-hint" data-food-hint>Nessun alimento ancora in questo pasto.</p>
+    </div>
+</template>
+
+<!-- template alimento (usato da JS) -->
+<template id="alimentoTemplate">
+    <div class="food-row" data-food>
+        <input type="text" data-field="cibo" placeholder="Es. Petto di pollo" required>
+        <div class="food-qty">
+            <input type="number" min="0" step="5" data-field="quantita" placeholder="Es. 150" required>
+            <span>g</span>
+        </div>
+        <button type="button" class="food-remove" data-remove-food title="Rimuovi alimento">✕</button>
+    </div>
+</template>
+
+<script src="home.js"></script>
+<script src="area_nutrizionista.js"></script>
+</body>
+</html>

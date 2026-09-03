@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bud Spencer — Area Trainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styleHome.css">
+    <link rel="stylesheet" href="styleTrainer.css">
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo"><span class="dot"></span>Bud Spencer — Area Trainer</div>
+        <div class="nav-actions">
+            <span class="trainer-chip" id="trainerChip" hidden>
+                <span class="chip-dot"></span>
+                <span id="trainerChipText"></span>
+            </span>
+        </div>
+    </nav>
+</header>
+
+<!-- ===================== GATE: CERTIFICAZIONE ===================== -->
+<section class="gate" id="gate">
+    <div class="gate-wrap">
+        <div class="eyebrow"><span class="rule"></span>Prima di iniziare</div>
+        <h1 class="gate-title">Verifica le tue<br><em>credenziali.</em></h1>
+        <p class="gate-lead">Per seguire clienti sulla piattaforma dobbiamo prima registrare la tua certificazione professionale. Ti servono due minuti: dati della certificazione e il tuo CV.</p>
+        <br><br>
+        <form id="certForm" class="cert-form" novalidate style="max-width:480px; margin:0 auto; width:100%;">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="c-professione">Professione</label>
+                    <select id="c-professione" required style="color: white; background-color: black">
+                        <option value="personal-trainer" selected>Personal Trainer</option>
+                        <option value="istruttore-fitness">Istruttore Fitness</option>
+                        <option value="preparatore-atletico">Preparatore Atletico</option>
+                        <option value="fisioterapista">Fisioterapista</option>
+                    </select>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="c-certificazione">Certificazione (PDF)</label>
+                    <label class="file-drop" id="certificazioneDrop" for="c-certificazione">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                        <span id="certificazioneDropText">Trascina qui la tua cerrtificazione o clicca per selezionarla</span>
+                    </label>
+                    <input id="c-certificazione" type="file" accept=".pdf,.doc,.docx" required hidden>
+                </div>
+
+                <div class="field">
+                    <label for="c-codice">Codice certificazione</label>
+                    <input id="c-codice" type="text" placeholder="Es. PT-2024-00123" required>
+                </div>
+
+                <div class="field">
+                    <label for="c-ente">Ente di rilascio</label>
+                    <input id="c-ente" type="text" placeholder="Es. CONI, ISSA, FIF" required>
+                </div>
+
+                <div class="field field-half">
+                    <label for="c-rilascio">Data rilascio</label>
+                    <input id="c-rilascio" type="date" required>
+                </div>
+
+                <div class="field field-half">
+                    <label for="c-scadenza">Data scadenza</label>
+                    <input id="c-scadenza" type="date" required>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="c-cv">Curriculum Vitae (PDF)</label>
+                    <label class="file-drop" id="cvDrop" for="c-cv">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                        <span id="cvDropText">Trascina qui il tuo CV o clicca per selezionarlo</span>
+                    </label>
+                    <input id="c-cv" type="file" accept=".pdf,.doc,.docx" required hidden>
+                </div>
+            </div>
+
+            <p class="form-error" id="certError" hidden>Controlla i campi: la data di scadenza deve essere successiva alla data di rilascio.</p>
+
+            <button class="btn btn-solid" type="submit">Conferma certificazione e continua</button>
+        </form>
+    </div>
+</section>
+
+<!-- ===================== DASHBOARD ===================== -->
+<section class="dash wrap" id="dashboard" hidden>
+
+    <div class="dash-head">
+        <div>
+            <div class="eyebrow"><span class="rule"></span>I tuoi clienti</div>
+            <h2>Chi allena oggi il tuo coaching.</h2>
+        </div>
+        <p class="dash-sub">Seleziona un cliente per creare un nuovo piano di allenamento o rivedere quelli già assegnati.</p>
+    </div>
+
+    <div class="table-card">
+        <table class="clients-table">
+            <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Iscritto dal</th>
+                <th>Piani attivi</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ===================== MODAL: PIANO ===================== -->
+<div class="overlay" id="planOverlay">
+    <div class="modal modal-wide">
+        <button class="modal-close" id="planClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Nuovo piano per <span id="planClientName">—</span></div>
+        <h3 class="display">Costruisci l'allenamento.</h3>
+
+        <form id="planForm" novalidate>
+            <div class="form-grid">
+                <div class="field field-wide">
+                    <label for="p-nome">Nome piano</label>
+                    <input id="p-nome" type="text" placeholder="Es. Ricomposizione 8 settimane" required>
+                </div>
+
+                <div class="field">
+                    <label for="p-obiettivo">Obiettivo</label>
+                    <select id="p-obiettivo" required>
+                        <option value="" disabled selected>Seleziona l'obiettivo</option>
+                        <option>Dimagrimento</option>
+                        <option>Ipertrofia</option>
+                        <option>Forza</option>
+                        <option>Resistenza</option>
+                        <option>Mobilità</option>
+                        <option>Riabilitazione</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="p-livello">Livello difficoltà</label>
+                    <select id="p-livello" required>
+                        <option value="" disabled selected>Seleziona il livello</option>
+                        <option>Principiante</option>
+                        <option>Intermedio</option>
+                        <option>Avanzato</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="p-durata">Durata (settimane)</label>
+                    <input id="p-durata" type="number" min="1" max="52" placeholder="Es. 8" required>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="p-descrizione">Descrizione</label>
+                    <textarea id="p-descrizione" rows="3" placeholder="Note generali sul piano, progressione, avvertenze..." required></textarea>
+                </div>
+            </div>
+
+            <div class="ex-head">
+                <h4>Esercizi del programma</h4>
+                <button type="button" class="btn btn-ghost btn-small" id="addExercise">+ Aggiungi esercizio</button>
+            </div>
+
+            <div id="exerciseList" class="exercise-list"></div>
+            <p class="form-hint" id="noExerciseHint">Nessun esercizio ancora. Aggiungine almeno uno per salvare il piano.</p>
+
+            <p class="form-error" id="planError" hidden>Controlla i campi del piano e di ogni esercizio prima di salvare.</p>
+
+            <button class="btn btn-solid" type="submit">Salva piano</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL: VEDI PIANI ===================== -->
+<div class="overlay" id="viewOverlay">
+    <div class="modal modal-wide">
+        <button class="modal-close" id="viewClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Piani di <span id="viewClientName">—</span></div>
+        <h3 class="display">Storico allenamenti.</h3>
+        <div id="plansList" class="plans-list"></div>
+    </div>
+</div>
+
+<!-- template esercizio (usato da JS) -->
+<template id="exerciseTemplate">
+    <div class="exercise-card" data-ex>
+        <div class="exercise-card-head">
+            <span class="ex-order" data-order>1</span>
+            <div class="ex-move">
+                <button type="button" class="ex-move-btn" data-move="up" title="Sposta su">↑</button>
+                <button type="button" class="ex-move-btn" data-move="down" title="Sposta giù">↓</button>
+            </div>
+            <button type="button" class="ex-remove" data-remove title="Rimuovi esercizio">✕</button>
+        </div>
+
+        <div class="form-grid">
+            <div class="field field-wide">
+                <label>Nome esercizio</label>
+                <input type="text" data-field="nome" placeholder="Es. Panca piana con bilanciere" required>
+            </div>
+
+            <div class="field field-wide">
+                <label>Descrizione esercizio</label>
+                <textarea rows="2" data-field="descrizione" placeholder="Esecuzione, punti di attenzione..." required></textarea>
+            </div>
+
+            <div class="field">
+                <label>Gruppo muscolare</label>
+                <select data-field="gruppo" required>
+                    <option value="" disabled selected>Seleziona</option>
+                    <option>Petto</option>
+                    <option>Schiena</option>
+                    <option>Gambe</option>
+                    <option>Spalle</option>
+                    <option>Braccia</option>
+                    <option>Core</option>
+                    <option>Full body</option>
+                </select>
+            </div>
+
+            <div class="field field-wide">
+                <label>Video dimostrativo (link)</label>
+                <input type="url" data-field="video" placeholder="https://...">
+            </div>
+        </div>
+
+        <div class="ex-sub">
+            <div class="field field-quarter">
+                <label>Serie</label>
+                <input type="number" min="1" data-field="serie" placeholder="Es. 4" required>
+            </div>
+            <div class="field field-quarter">
+                <label>Ripetizioni</label>
+                <input type="text" data-field="ripetizioni" placeholder="Es. 8-12" required>
+            </div>
+            <div class="field field-quarter">
+                <label>Recupero (secondi)</label>
+                <input type="number" min="0" step="5" data-field="recupero" placeholder="Es. 90" required>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script src="home.js"></script>
+<script src="area_trainer.js"></script>
+</body>
+</html>

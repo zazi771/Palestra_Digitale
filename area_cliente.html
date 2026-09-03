@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bud Spencer — Area Cliente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styleHome.css">
+    <link rel="stylesheet" href="styleAreaNutrizionista.css">
+    <link rel="stylesheet" href="styleAreaCliente.css">
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo"><span class="dot"></span>Bud Spencer — Area Cliente</div>
+        <div class="nav-actions">
+            <span class="trainer-chip" id="clientChip" hidden>
+                <span class="chip-dot"></span>
+                <span id="clientChipText"></span>
+            </span>
+        </div>
+    </nav>
+</header>
+
+<!-- ===================== GATE: CARTELLA CLINICA INIZIALE ===================== -->
+<section class="gate" id="gate">
+    <div class="gate-wrap">
+        <div class="eyebrow"><span class="rule"></span>Prima di iniziare</div>
+        <h1 class="gate-title">Raccontaci il tuo<br><em>stato di salute.</em></h1>
+        <p class="gate-lead">Per permettere al tuo nutrizionista e al tuo trainer di seguirti al meglio, compila la tua cartella clinica iniziale. Potrai aggiornarla in qualsiasi momento.</p>
+        <br><br>
+        <form id="cartellaForm" class="cert-form" novalidate style="max-width:560px; margin:0 auto; width:100%;">
+            <div class="form-grid" id="cartellaFieldsGate"></div>
+            <p class="form-error" id="cartellaError" hidden>Controlla i campi obbligatori prima di continuare.</p>
+            <button class="btn btn-solid" type="submit">Salva cartella clinica e continua</button>
+        </form>
+    </div>
+</section>
+
+<!-- ===================== DASHBOARD ===================== -->
+<section class="dash wrap" id="dashboard" hidden>
+
+    <div class="dash-head">
+        <div>
+            <div class="eyebrow"><span class="rule"></span>La tua area</div>
+            <h2>Il tuo percorso, sotto controllo.</h2>
+        </div>
+        <p class="dash-sub">Cartella clinica, piano alimentare, programma di allenamento e progressi in un unico posto.</p>
+    </div>
+
+    <div class="tabs" id="tabs">
+        <button class="tab-btn active" data-tab="clinica">Cartella Clinica</button>
+        <button class="tab-btn" data-tab="alimentare">Piano Alimentare</button>
+        <button class="tab-btn" data-tab="allenamento">Allenamento</button>
+        <button class="tab-btn" data-tab="progressi">I Miei Progressi</button>
+    </div>
+
+    <!-- ---------- TAB: CARTELLA CLINICA ---------- -->
+    <div class="tab-panel active" id="tab-clinica">
+        <div class="panel-head">
+            <p class="dash-sub2">Storico delle tue rilevazioni cliniche, dalla più recente.</p>
+            <button class="btn btn-solid btn-small" id="addRecordBtn">+ Nuova rilevazione</button>
+        </div>
+        <div id="recordsList" class="records-list"></div>
+    </div>
+
+    <!-- ---------- TAB: PIANO ALIMENTARE ---------- -->
+    <div class="tab-panel" id="tab-alimentare">
+        <div id="pianoAlimentareView"></div>
+    </div>
+
+    <!-- ---------- TAB: ALLENAMENTO ---------- -->
+    <div class="tab-panel" id="tab-allenamento">
+        <div id="programmaView"></div>
+    </div>
+
+    <!-- ---------- TAB: PROGRESSI ---------- -->
+    <div class="tab-panel" id="tab-progressi">
+        <div class="stats-row" id="statsRow"></div>
+        <p class="dash-sub2" style="margin-top:26px;">Le tue sessioni di allenamento, con esercizi svolti e non svolti.</p>
+        <div id="sessioniList" class="sessioni-list"></div>
+    </div>
+</section>
+
+<!-- ===================== MODAL: NUOVA RILEVAZIONE CLINICA ===================== -->
+<div class="overlay" id="recordOverlay">
+    <div class="modal modal-wide">
+        <button class="modal-close" id="recordClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Nuova rilevazione</div>
+        <h3 class="display">Aggiorna la tua cartella clinica.</h3>
+        <form id="recordForm" novalidate>
+            <div class="form-grid" id="cartellaFieldsModal"></div>
+            <p class="form-error" id="recordError" hidden>Controlla i campi obbligatori prima di salvare.</p>
+            <button class="btn btn-solid" type="submit">Salva rilevazione</button>
+        </form>
+    </div>
+</div>
+
+<script src="home.js"></script>
+<script src="area_cliente.js"></script>
+</body>
+</html>
