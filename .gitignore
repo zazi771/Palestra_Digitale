@@ -43,6 +43,11 @@
 build/
 Build/
 build-*/
+cmake-build-*/
+
+# IDE - CLion / JetBrains
+.idea/
+*.iml
 
 # CMake generated files
 CMakeFiles/
