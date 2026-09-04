@@ -4,8 +4,6 @@
 
 #include "Database.h"
 
-#include "Database.h"
-
 Database::Database(const std::string& percorsoFile)
     : db(percorsoFile, SQLite::OPEN_READWRITE) {
     db.exec("PRAGMA foreign_keys = ON;");
