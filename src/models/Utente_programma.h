@@ -22,6 +22,12 @@ protected:
 public:
     //Costruttore
     Utente_programma(int id_assegnazione, int id_utente, int id_programma, date data_inizio, string stato);
+
+    int getId() const;
+    int getIdUtente() const;
+    int getIdProgramma() const;
+    date getDataInizio() const;
+    string getStato() const;
 };
 
 

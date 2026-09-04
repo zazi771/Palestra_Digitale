@@ -23,6 +23,14 @@ public:
     //Costruttore
     Programma_allenamento(int id_programma, int id_trainer, string nome, string obiettivo, string livello_difficolta,
     int durata_settimane, string descrizione);
+
+    int getId() const;
+    int getIdTrainer() const;
+    string getNome() const;
+    string getObiettivo() const;
+    string getLivelloDifficolta() const;
+    int getDurataSettimane() const;
+    string getDescrizione() const;
 };
 
 

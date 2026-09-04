@@ -40,6 +40,24 @@ public:
         string note_mediche);
 
     //Metodi
+    int getId() const;
+    int getIdCliente() const;
+    date getDataRilevazione() const;
+    string getDataRilevazioneStr() const;
+    float getAltezza() const;
+    float getPeso() const;
+    float getCircVita() const;
+    float getCircFianchi() const;
+    float getMassaGrassa() const;
+    float getMassaMagra() const;
+    string getPatologie() const;
+    string getAllergie() const;
+    string getIntolleranze() const;
+    string getInfortuni() const;
+    string getFarmaci() const;
+    string getLivelloAttivita() const;
+    string getObiettivo() const;
+    string getNoteMediche() const;
 
 };
 

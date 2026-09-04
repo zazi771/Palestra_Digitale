@@ -27,6 +27,18 @@ public:
     //Costruttore
     Certificazione(int id_certificazione, int id_esperto, string cv, string certificazione, string professione,
         string ente_rilascio, int codice_certificazione, date data_rilascio, date data_scadenza);
+
+    int getId() const;
+    int getIdEsperto() const;
+    string getCv() const;
+    string getCertificazione() const;
+    string getProfessione() const;
+    string getEnteRilascio() const;
+    int getCodice() const;
+    date getDataRilascio() const;
+    string getDataRilascioStr() const;
+    date getDataScadenza() const;
+    string getDataScadenzaStr() const;
 };
 
 

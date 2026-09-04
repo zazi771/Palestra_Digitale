@@ -21,6 +21,11 @@ public:
     //Costruttore
     Esercizio(int id_esercizio, string nome, string descrizione, string gruppo_muscolare, string url_video);
 
+    int getId() const;
+    string getNome() const;
+    string getDescrizione() const;
+    string getGruppoMuscolare() const;
+    string getUrlVideo() const;
 };
 
 

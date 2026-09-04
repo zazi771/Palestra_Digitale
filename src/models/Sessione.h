@@ -7,6 +7,8 @@
 
 #include <chrono>
 using date = std::chrono::year_month_day;
+#include <string>
+using string = std::string;
 
 class Sessione {
 protected:
@@ -21,6 +23,14 @@ protected:
 public:
     //Costruttore
     Sessione(int id_sessione, int id_utente, int id_programma, date data, int tempo_minuti, int completato);
+
+    int getId() const;
+    int getIdUtente() const;
+    int getIdProgramma() const;
+    date getData() const;
+    string getDataStr() const;
+    int getTempoMinuti() const;
+    int getCompletato() const;
 };
 
 

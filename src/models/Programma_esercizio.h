@@ -24,6 +24,13 @@ public:
     Programma_esercizio(int id_programma_esercizio, int id_programma, int id_esercizio, int ordine, int serie,
         string ripetizioni, int recupero_sec);
 
+    int getId() const;
+    int getIdProgramma() const;
+    int getIdEsercizio() const;
+    int getOrdine() const;
+    int getSerie() const;
+    string getRipetizioni() const;
+    int getRecupero() const;
 };
 
 

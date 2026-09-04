@@ -17,6 +17,11 @@ protected:
 public:
     //Costruttore
     Pasto_cibo(int id_pasto_cibo, int id_pasto, int id_cibo, int quantita_gr);
+
+    int getId() const;
+    int getIdPasto() const;
+    int getIdCibo() const;
+    int getQuantita() const;
 };
 
 

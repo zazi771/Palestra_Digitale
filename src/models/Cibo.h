@@ -24,6 +24,12 @@ public:
     //Costruttore
     Cibo(int id_cibo, string nome, float kcal, float carboidrati, float proteine, float grassi);
 
+    int getId() const;
+    string getNome() const;
+    float getKcal() const;
+    float getCarboidrati() const;
+    float getProteine() const;
+    float getGrassi() const;
 };
 
 

@@ -34,8 +34,16 @@ public:
 
     //Metodi
     int getId() const;
+    string getEmail() const;
+    string getPasswordHash() const;
     string getNome() const;
+    string getCognome() const;
     string getRuolo() const;
+    string getSesso() const;
+    date getDataRegistrazione() const;
+    string getDataRegistrazioneStr() const;
+    date getDataNascita() const;
+    string getDataNascitaStr() const;
 
 };
 

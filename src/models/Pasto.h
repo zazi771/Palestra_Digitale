@@ -20,6 +20,12 @@ protected:
 public:
     //Costruttore
     Pasto(int id_pasto, int id_piano, int id_cibo, int giorno, string tipo_pasto);
+
+    int getId() const;
+    int getIdPiano() const;
+    int getIdCibo() const;
+    int getGiorno() const;
+    string getTipoPasto() const;
 };
 
 
