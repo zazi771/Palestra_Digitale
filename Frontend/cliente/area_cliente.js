@@ -162,9 +162,13 @@ function readCartellaFields(suffix){
     const missing = [];
     cartellaFields.forEach(f => {
         const el = document.getElementById(fieldId(f, suffix));
-        const val = el.value.trim ? el.value.trim() : el.value;
+        let val = el.value.trim ? el.value.trim() : el.value;
         if(f.required && !val) missing.push(f.label);
-        values[f.api] = val || (f.type === "textarea" ? "" : "0");
+        if(f.type === "number"){
+            values[f.api] = val === "" ? 0 : Number(val);
+        } else {
+            values[f.api] = val || "";
+        }
     });
     return { values, missing };
 }

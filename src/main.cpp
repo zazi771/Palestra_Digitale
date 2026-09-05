@@ -6,6 +6,8 @@
 #include <crow.h>
 #include <iostream>
 #include <windows.h>
+#include <filesystem>
+#include <algorithm>
 
 namespace {
 
@@ -51,6 +53,42 @@ crow::response serviUpload(const std::string& nome) {
     return res;
 }
 
+// Serve qualunque file dentro Frontend/, validando che il path richiesto
+// non esca dalla cartella (protezione da path traversal, es. "../../PalestraDigitale.db").
+crow::response serviFileGenerico(std::string richiesto) {
+    // Rifiuta subito pattern sospetti prima ancora di toccare il filesystem
+    if (richiesto.empty() || richiesto.find("..") != std::string::npos) {
+        return crow::response(400);
+    }
+
+    // Normalizza eventuali backslash (nel caso arrivino da client strani)
+    std::replace(richiesto.begin(), richiesto.end(), '/', '\\');
+
+    std::filesystem::path base(BASE);
+    std::filesystem::path target = base / richiesto;
+
+    std::error_code ec;
+    auto baseCanon = std::filesystem::weakly_canonical(base, ec);
+    auto targetCanon = std::filesystem::weakly_canonical(target, ec);
+    if (ec) return crow::response(404);
+
+    // Controllo finale: il path risolto deve stare DENTRO la cartella Frontend
+    auto baseStr = baseCanon.string();
+    auto targetStr = targetCanon.string();
+    if (targetStr.size() < baseStr.size() ||
+        targetStr.compare(0, baseStr.size(), baseStr) != 0) {
+        return crow::response(403);
+    }
+
+    if (!std::filesystem::exists(targetCanon) || std::filesystem::is_directory(targetCanon)) {
+        return crow::response(404);
+    }
+
+    crow::response res(200);
+    res.set_static_file_info_unsafe(targetStr);
+    return res;
+}
+
 }
 
 int main() {
@@ -66,35 +104,10 @@ int main() {
         crow::SimpleApp app;
 
         // ---- File statici (Frontend) ----
+        // Home page di default
         CROW_ROUTE(app, "/")([] { return serviFile("home.html"); });
-        CROW_ROUTE(app, "/home.html")([] { return serviFile("home.html"); });
-        CROW_ROUTE(app, "/home.css")([] { return serviFile("home.css"); });
-        CROW_ROUTE(app, "/styleHome.css")([] { return serviFile("home.css"); });
-        CROW_ROUTE(app, "/home.js")([] { return serviFile("home.js"); });
 
-        // Area cliente
-        CROW_ROUTE(app, "/cliente/area_cliente.html")([] { return serviFile("cliente/area_cliente.html"); });
-        CROW_ROUTE(app, "/cliente/area_cliente.js")([] { return serviFile("cliente/area_cliente.js"); });
-        CROW_ROUTE(app, "/cliente/area_cliente.css")([] { return serviFile("cliente/area_cliente.css"); });
-        CROW_ROUTE(app, "/styleAreaCliente.css")([] { return serviFile("cliente/area_cliente.css"); });
-
-        // Area trainer
-        CROW_ROUTE(app, "/trainer/area_trainer.html")([] { return serviFile("trainer/area_trainer.html"); });
-        CROW_ROUTE(app, "/trainer/area_trainer.js")([] { return serviFile("trainer/area_trainer.js"); });
-        CROW_ROUTE(app, "/trainer/area_trainer.css")([] { return serviFile("trainer/area_trainer.css"); });
-        CROW_ROUTE(app, "/styleTrainer.css")([] { return serviFile("trainer/area_trainer.css"); });
-
-        // Area nutrizionista
-        CROW_ROUTE(app, "/nutrizionista/area_nutrizionista.html")([] { return serviFile("nutrizionista/area_nutrizionista.html"); });
-        CROW_ROUTE(app, "/nutrizionista/area_nutrizionista.js")([] { return serviFile("nutrizionista/area_nutrizionista.js"); });
-        CROW_ROUTE(app, "/nutrizionista/area_nutrizionista.css")([] { return serviFile("nutrizionista/area_nutrizionista.css"); });
-        CROW_ROUTE(app, "/styleAreaNutrizionista.css")([] { return serviFile("nutrizionista/area_nutrizionista.css"); });
-
-        // Assets
-        CROW_ROUTE(app, "/assets/logo.jpg")([] { return serviFile("assets/logo.jpg"); });
-        CROW_ROUTE(app, "/img/logo.jpg")([] { return serviFile("assets/logo.jpg"); });
-
-        // File caricati (CV, certificazioni)
+        // File caricati (CV, certificazioni) — cartella separata da Frontend/
         CROW_ROUTE(app, "/uploads/<string>")([](const std::string& nome) { return serviUpload(nome); });
 
         // ---- API ----
@@ -102,6 +115,13 @@ int main() {
         registraClienteRoutes(app, db);
         registraTrainerRoutes(app, db, UPLOADS);
         registraNutrizionistaRoutes(app, db, UPLOADS);
+
+        // Route generica per QUALSIASI altro file dentro Frontend/
+        // (home.html, home.css, home.js, cliente/area_cliente.css, assets/logo.jpg, ecc.)
+        // Registrata per ultima: Crow dà priorità ai segmenti letterali (es. /uploads/...)
+        // rispetto al parametro <path>, ma è buona norma tenerla in fondo al file.
+        CROW_ROUTE(app, "/<path>")
+        ([](const std::string& path) { return serviFileGenerico(path); });
 
         std::cout << "Server avviato su http://localhost:18080" << std::endl;
         std::cout << "Cartella progetto: " << PROGETTO << std::endl;
