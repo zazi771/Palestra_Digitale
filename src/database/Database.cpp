@@ -394,7 +394,7 @@ bool Database::assegnaProgramma(int id_utente, int id_programma, const std::stri
     query.bind(1, id_utente);
     query.bind(2, id_programma);
     query.bind(3, data_inizio);
-    query.bind(4, "attivo");
+    query.bind(4, "Non iniziato");
     return query.exec() > 0;
 }
 

@@ -191,61 +191,67 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
     // POST /api/trainer/<id>/clienti/<clienteId>/piani  -> crea programma + assegna
     CROW_ROUTE(app, "/api/trainer/<int>/clienti/<int>/piani").methods(crow::HTTPMethod::POST)
     ([&db](const crow::request& req, int idTrainer, int clienteId) {
-        auto body = crow::json::load(req.body);
-        if (!body) return crow::response(400, R"({"errore":"Body JSON non valido"})");
+        try{
+            auto body = crow::json::load(req.body);
+            if (!body) return crow::response(400, R"({"errore":"Body JSON non valido"})");
 
-        std::string nome = body.has("nome") ? std::string(body["nome"]) : "";
-        std::string obiettivo = body.has("obiettivo") ? std::string(body["obiettivo"]) : "";
-        std::string livello = body.has("livello_difficolta") ? std::string(body["livello_difficolta"]) : "";
-        int durata = body.has("durata_settimane") ? (int)body["durata_settimane"] : 0;
-        std::string descrizione = body.has("descrizione") ? std::string(body["descrizione"]) : "";
+            std::string nome = body.has("nome") ? std::string(body["nome"]) : "";
+            std::string obiettivo = body.has("obiettivo") ? std::string(body["obiettivo"]) : "";
+            std::string livello = body.has("livello_difficolta") ? std::string(body["livello_difficolta"]) : "";
+            int durata = body.has("durata_settimane") ? (int)body["durata_settimane"] : 0;
+            std::string descrizione = body.has("descrizione") ? std::string(body["descrizione"]) : "";
 
-        if (nome.empty() || obiettivo.empty() || livello.empty()) {
-            return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
-        }
-
-        // 1) inserisce il programma e ottiene l'id
-        Programma_allenamento prog(0, idTrainer, nome, obiettivo, livello, durata, descrizione);
-        int idProgramma = db.inserisciProgramma(prog);
-        if (idProgramma <= 0) return crow::response(500, R"({"errore":"Errore salvataggio programma"})");
-
-        // 2) assegna il programma al cliente
-        auto oggi = std::chrono::system_clock::now();
-        auto tt = std::chrono::system_clock::to_time_t(oggi);
-        std::tm tm = *std::localtime(&tt);
-        std::ostringstream oss;
-        oss << (tm.tm_year + 1900) << "-"
-            << (tm.tm_mon + 1 < 10 ? "0" : "") << (tm.tm_mon + 1) << "-"
-            << (tm.tm_mday < 10 ? "0" : "") << tm.tm_mday;
-        db.assegnaProgramma(clienteId, idProgramma, oss.str());
-
-        // 3) inserisce gli esercizi
-        if (body.has("esercizi") && body["esercizi"].t() == crow::json::type::List) {
-            int ordine = 1;
-            for (const auto& es : body["esercizi"]) {
-                std::string esNome = es.has("nome") ? std::string(es["nome"]) : "";
-                std::string esDesc = es.has("descrizione") ? std::string(es["descrizione"]) : "";
-                std::string esGruppo = es.has("gruppo_muscolare") ? std::string(es["gruppo_muscolare"]) : "";
-                std::string esVideo = es.has("url_video") ? std::string(es["url_video"]) : "";
-                int esSerie = es.has("serie") ? (int)es["serie"] : 0;
-                std::string esRip = es.has("ripetizioni") ? std::string(es["ripetizioni"]) : "";
-                int esRecupero = es.has("recupero_sec") ? (int)es["recupero_sec"] : 0;
-
-                if (esNome.empty()) continue;
-
-                // Crea (o riusa) l'esercizio e ottiene l'id
-                Esercizio ex(0, esNome, esDesc, esGruppo, esVideo);
-                int idEsercizio = db.inserisciEsercizio(ex);
-
-                Programma_esercizio pe(0, idProgramma, idEsercizio, ordine, esSerie, esRip, esRecupero);
-                db.inserisciProgrammaEsercizio(pe);
-                ordine++;
+            if (nome.empty() || obiettivo.empty() || livello.empty()) {
+                return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
             }
-        }
 
-        crow::json::wvalue w;
-        w["id"] = idProgramma;
-        return crow::response(201, w);
+            // 1) inserisce il programma e ottiene l'id
+            Programma_allenamento prog(0, idTrainer, nome, obiettivo, livello, durata, descrizione);
+            int idProgramma = db.inserisciProgramma(prog);
+            if (idProgramma <= 0) return crow::response(500, R"({"errore":"Errore salvataggio programma"})");
+
+            // 2) assegna il programma al cliente
+            auto oggi = std::chrono::system_clock::now();
+            auto tt = std::chrono::system_clock::to_time_t(oggi);
+            std::tm tm = *std::localtime(&tt);
+            std::ostringstream oss;
+            oss << (tm.tm_year + 1900) << "-"
+                << (tm.tm_mon + 1 < 10 ? "0" : "") << (tm.tm_mon + 1) << "-"
+                << (tm.tm_mday < 10 ? "0" : "") << tm.tm_mday;
+            db.assegnaProgramma(clienteId, idProgramma, oss.str());
+
+            // 3) inserisce gli esercizi
+            if (body.has("esercizi") && body["esercizi"].t() == crow::json::type::List) {
+                int ordine = 1;
+                for (const auto& es : body["esercizi"]) {
+                    std::string esNome = es.has("nome") ? std::string(es["nome"]) : "";
+                    std::string esDesc = es.has("descrizione") ? std::string(es["descrizione"]) : "";
+                    std::string esGruppo = es.has("gruppo_muscolare") ? std::string(es["gruppo_muscolare"]) : "";
+                    std::string esVideo = es.has("url_video") ? std::string(es["url_video"]) : "";
+                    int esSerie = es.has("serie") ? (int)es["serie"] : 0;
+                    std::string esRip = es.has("ripetizioni") ? std::string(es["ripetizioni"]) : "";
+                    int esRecupero = es.has("recupero_sec") ? (int)es["recupero_sec"] : 0;
+
+                    if (esNome.empty()) continue;
+
+                    // Crea (o riusa) l'esercizio e ottiene l'id
+                    Esercizio ex(0, esNome, esDesc, esGruppo, esVideo);
+                    int idEsercizio = db.inserisciEsercizio(ex);
+
+                    Programma_esercizio pe(0, idProgramma, idEsercizio, ordine, esSerie, esRip, esRecupero);
+                    db.inserisciProgrammaEsercizio(pe);
+                    ordine++;
+                }
+            }
+
+            crow::json::wvalue w;
+            w["id"] = idProgramma;
+            return crow::response(201, w);
+        } catch (const std::exception& e) {
+        return crow::response(500, std::string(R"({"errore":")") + e.what() + R"("})");
+        } catch (...) {
+            return crow::response(500, R"({"errore":"Errore sconosciuto"})");
+        }
     });
 
     // GET /api/esercizi  -> elenco di tutti gli esercizi disponibili
