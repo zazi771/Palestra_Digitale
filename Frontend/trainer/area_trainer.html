@@ -15,10 +15,11 @@
     <nav>
         <div class="logo"><span class="dot"></span>Bud Spencer — Area Trainer</div>
         <div class="nav-actions">
-            <span class="trainer-chip" id="trainerChip" hidden>
-                <span class="chip-dot"></span>
-                <span id="trainerChipText"></span>
-            </span>
+        <span class="trainer-chip" id="trainerChip" hidden>
+            <span class="chip-dot"></span>
+            <span id="trainerChipText"></span>
+        </span>
+            <button class="btn btn-small" id="logoutBtn" hidden>Logout</button>
         </div>
     </nav>
 </header>
@@ -32,15 +33,6 @@
         <br><br>
         <form id="certForm" class="cert-form" novalidate style="max-width:480px; margin:0 auto; width:100%;">
             <div class="form-grid">
-                <div class="field">
-                    <label for="c-professione">Professione</label>
-                    <select id="c-professione" required style="color: white; background-color: black">
-                        <option value="personal-trainer" selected>Personal Trainer</option>
-                        <option value="istruttore-fitness">Istruttore Fitness</option>
-                        <option value="preparatore-atletico">Preparatore Atletico</option>
-                        <option value="fisioterapista">Fisioterapista</option>
-                    </select>
-                </div>
 
                 <div class="field field-wide">
                     <label for="c-certificazione">Certificazione (PDF)</label>

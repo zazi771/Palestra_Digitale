@@ -52,16 +52,26 @@ async function init(){
     chipText.textContent = `${nutriProfile.nome} ${nutriProfile.cognome} · Nutrizionista`;
     chip.hidden = false;
 
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.hidden = false;
+    logoutBtn.addEventListener("click", logout);
+
     const cert = await api(`/api/nutrizionista/${utente.id}/certificazione`);
     if(cert.ok && cert.data.id){
-        document.getElementById("gate").style.display = "none";
+        document.getElementById("gate").style.hidden = true;
         document.getElementById("dashboard").hidden = false;
         await caricaClienti();
         renderClients();
     } else {
-        document.getElementById("gate").style.display = "";
+        document.getElementById("gate").style.hidden = false;
         document.getElementById("dashboard").hidden = true;
     }
+}
+
+
+function logout(){
+    localStorage.removeItem('utente');
+    window.location.href = '/home.html';
 }
 
 async function caricaClienti(){
@@ -107,7 +117,6 @@ certForm.addEventListener("submit", async (e) => {
     certError.hidden = true;
     certError.textContent = "";
 
-    const professione = document.getElementById("c-professione").value;
     const certificazioneFile = certificazioneInput.files[0];
     const codice = document.getElementById("c-codice").value.trim();
     const ente = document.getElementById("c-ente").value.trim();
@@ -116,7 +125,6 @@ certForm.addEventListener("submit", async (e) => {
     const cvFile = cvInput.files[0];
 
     const mancanti = [];
-    if(!professione) mancanti.push("Professione");
     if(!certificazioneFile) mancanti.push("Certificazione allegata");
     if(!codice) mancanti.push("Codice certificazione");
     if(!ente) mancanti.push("Ente di rilascio");
@@ -132,7 +140,6 @@ certForm.addEventListener("submit", async (e) => {
     }
 
     const fd = new FormData();
-    fd.append('professione', professione);
     fd.append('codice', codice);
     fd.append('ente_rilascio', ente);
     fd.append('data_rilascio', rilascio);
@@ -143,9 +150,9 @@ certForm.addEventListener("submit", async (e) => {
     const r = await api(`/api/nutrizionista/${utente.id}/certificazione`, { method: 'POST', body: fd });
     if(!r.ok){ certError.textContent = r.data.errore || "Errore salvataggio."; certError.hidden = false; return; }
 
-    const chipText = document.getElementById("nutriChipText");
-    const labels = {"nutrizionista":"Nutrizionista","biologo-nutrizionista":"Biologo Nutrizionista","dietista":"Dietista","medico-nutrizionista":"Medico Nutrizionista"};
-    chipText.textContent = `${labels[professione] || professione} · Certificato`;
+    //const chipText = document.getElementById("nutriChipText");
+    //const labels = {"nutrizionista":"Nutrizionista","biologo-nutrizionista":"Biologo Nutrizionista","dietista":"Dietista","medico-nutrizionista":"Medico Nutrizionista"};
+
     document.getElementById("nutriChip").hidden = false;
 
     document.getElementById("gate").style.display = "none";

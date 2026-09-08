@@ -91,7 +91,7 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
     // POST /api/nutrizionista/<id>/certificazione  -> salva la certificazione (multipart/form-data)
     CROW_ROUTE(app, "/api/nutrizionista/<int>/certificazione").methods(crow::HTTPMethod::POST)
     ([&db, &uploadsDir](const crow::request& req, int id) {
-        std::string professione, ente, rilascio, scadenza, codice;
+        std::string ente, rilascio, scadenza, codice;
         std::string nomeCertificazione, nomeCv;
 
         try {
@@ -100,7 +100,6 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
                 auto p = msg.get_part_by_name(k);
                 return p.body.empty() ? def : p.body;
             };
-            professione = str("professione", "");
             ente = str("ente_rilascio", "");
             rilascio = str("data_rilascio", "");
             scadenza = str("data_scadenza", "");
@@ -120,14 +119,11 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
             return crow::response(400, R"({"errore":"Body multipart non valido"})");
         }
 
-        if (professione.empty() || nomeCertificazione.empty() || nomeCv.empty()) {
-            return crow::response(400, R"-({"errore":"Campi obbligatori mancanti: professione, certificazione, CV"})-");
-        }
 
         int codiceInt = 0;
         try { codiceInt = std::stoi(codice); } catch (...) { codiceInt = 0; }
 
-        Certificazione c(0, id, nomeCv, nomeCertificazione, professione, ente, codiceInt,
+        Certificazione c(0, id, nomeCv, nomeCertificazione, ente, codiceInt,
                          parseDateISO(rilascio), parseDateISO(scadenza));
         if (!db.inserisciCertificazione(c)) {
             return crow::response(500, R"({"errore":"Errore durante il salvataggio"})");
@@ -142,7 +138,6 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
         if (!c) return crow::response(404, R"({"errore":"Nessuna certificazione trovata"})");
         crow::json::wvalue w;
         w["id"] = c->getId();
-        w["professione"] = c->getProfessione();
         w["certificazione"] = c->getCertificazione();
         w["ente_rilascio"] = c->getEnteRilascio();
         w["codice"] = c->getCodice();

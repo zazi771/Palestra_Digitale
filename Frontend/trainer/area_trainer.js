@@ -49,19 +49,37 @@ async function init(){
     chipText.textContent = `${trainerProfile.nome} ${trainerProfile.cognome} · Trainer`;
     chip.hidden = false;
 
-    // Verifica se ha già certificazione
-    const cert = await api(`/api/trainer/${utente.id}/certificazione`);
-    if(cert.ok && cert.data.id){
-        // Ha già certificazione → salta gate
-        document.getElementById("gate").hidden = true;
-        document.getElementById("dashboard").hidden = false;
-        await caricaClienti();
-        renderClients();
-    } else {
-        // Mostra gate
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.hidden = false;
+    logoutBtn.addEventListener("click", logout);
+
+    // ATTendi la risposta del server prima di decidere la vista
+    try {
+        const cert = await api(`/api/trainer/${utente.id}/certificazione`);
+        console.log("Risposta certificazione:", cert);
+
+        // Verifica se la certificazione esiste (controlla lo status HTTP 200 e la presenza di dati)
+        if(cert.ok && cert.data && (cert.data.id || cert.data.codice)){
+            // Ha già la certificazione -> salta il gate e mostra la dashboard
+            document.getElementById("gate").hidden = true;
+            document.getElementById("dashboard").hidden = false;
+            await caricaClienti();
+            renderClients();
+        } else {
+            // Non ha la certificazione -> mostra il gate
+            document.getElementById("gate").hidden = false;
+            document.getElementById("dashboard").hidden = true;
+        }
+    } catch (error) {
+        console.error("Errore durante il controllo della certificazione:", error);
         document.getElementById("gate").hidden = false;
         document.getElementById("dashboard").hidden = true;
     }
+}
+
+function logout(){
+    localStorage.removeItem('utente');
+    window.location.href = '/home.html';
 }
 
 async function caricaClienti(){
@@ -106,7 +124,6 @@ certForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     certError.hidden = true;
 
-    const professione = document.getElementById("c-professione").value;
     const certificazioneFile = certificazioneInput.files[0];
     const codice = document.getElementById("c-codice").value.trim();
     const ente = document.getElementById("c-ente").value.trim();
@@ -114,7 +131,7 @@ certForm.addEventListener("submit", async (e) => {
     const scadenza = document.getElementById("c-scadenza").value;
     const cvFile = cvInput.files[0];
 
-    if(!professione || !certificazioneFile || !codice || !ente || !rilascio || !scadenza || !cvFile){
+    if(!certificazioneFile || !codice || !ente || !rilascio || !scadenza || !cvFile){
         certError.hidden = false;
         return;
     }
@@ -125,7 +142,6 @@ certForm.addEventListener("submit", async (e) => {
     }
 
     const fd = new FormData();
-    fd.append('professione', professione);
     fd.append('codice', codice);
     fd.append('ente_rilascio', ente);
     fd.append('data_rilascio', rilascio);
@@ -135,11 +151,10 @@ certForm.addEventListener("submit", async (e) => {
 
     const r = await api(`/api/trainer/${utente.id}/certificazione`, { method: 'POST', body: fd });
     if(!r.ok){ certError.textContent = r.data.errore || "Errore salvataggio certificazione."; certError.hidden = false; return; }
-
+    console.log(certError.textContent);
     // Aggiorna chip
     const chipText = document.getElementById("trainerChipText");
-    const labels = {"personal-trainer":"Personal Trainer","istruttore-fitness":"Istruttore Fitness","preparatore-atletico":"Preparatore Atletico","fisioterapista":"Fisioterapista"};
-    chipText.textContent = `${labels[professione] || professione} · Certificato`;
+    chipText.textContent = `${trainerProfile.nome} ${trainerProfile.cognome} · Trainer · Certificato`;
     document.getElementById("trainerChip").hidden = false;
 
     document.getElementById("gate").hidden = true;

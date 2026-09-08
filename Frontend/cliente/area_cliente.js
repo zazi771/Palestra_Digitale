@@ -66,6 +66,20 @@ async function init(){
     chipText.textContent = `${utenteCliente.nome} ${utenteCliente.cognome} · Cliente`;
     chip.hidden = false;
 
+    const chip1 = document.getElementById("clientChip1");
+    const chipText1 = document.getElementById("clientChipText1");
+    chipText1.textContent = `${utenteCliente.nome} ${utenteCliente.cognome} · Cliente`;
+    chip1.hidden = false;
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.hidden = false;
+    logoutBtn.addEventListener("click", logout);
+
+    function logout(){
+        localStorage.removeItem('utente');
+        window.location.href = '/home.html';
+    }
+
     // carica tutti i dati
     await Promise.all([caricaCartella(), caricaPianoAlimentare(), caricaProgramma(), caricaSessioni()]);
 

@@ -453,6 +453,9 @@ footer{
 .pane{display:none;}
 .pane.active{display:block;}
 
+/* l'attributo hidden deve sempre vincere le regole display dei componenti */
+[hidden]{display:none !important;}
+
 @media (prefers-reduced-motion: reduce){
     .pulse-strip svg, .logo .dot{animation:none;}
 }

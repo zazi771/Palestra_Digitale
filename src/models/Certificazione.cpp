@@ -16,10 +16,9 @@ static std::string dateToStr(date d) {
     return oss.str();
 }
 
-Certificazione::Certificazione(int id_certificazione, int id_esperto, string cv, string certificazione,
-    string professione, string ente_rilascio, int codice_certificazione, date data_rilascio, date data_scadenza)
+Certificazione::Certificazione(int id_certificazione, int id_esperto, string cv, string certificazione, string ente_rilascio, int codice_certificazione, date data_rilascio, date data_scadenza)
     :id_certificazione(id_certificazione), id_esperto(id_esperto), cv(std::move(cv)),
-        certificazione(std::move(certificazione)), professione(std::move(professione)),
+        certificazione(std::move(certificazione)),
         ente_rilascio(std::move(ente_rilascio)), codice_certificazione(codice_certificazione),
         data_rilascio(data_rilascio), data_scadenza(data_scadenza){}
 
@@ -27,7 +26,6 @@ int Certificazione::getId() const { return id_certificazione; }
 int Certificazione::getIdEsperto() const { return id_esperto; }
 std::string Certificazione::getCv() const { return cv; }
 std::string Certificazione::getCertificazione() const { return certificazione; }
-std::string Certificazione::getProfessione() const { return professione; }
 std::string Certificazione::getEnteRilascio() const { return ente_rilascio; }
 int Certificazione::getCodice() const { return codice_certificazione; }
 date Certificazione::getDataRilascio() const { return data_rilascio; }

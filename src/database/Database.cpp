@@ -161,30 +161,28 @@ bool Database::inserisciCartella(const Cartella_clinica& c) {
 // =====================================================================
 std::optional<Certificazione> Database::getCertificazioneByEsperto(int id_esperto) {
     SQLite::Statement query(db,
-        "SELECT id_certificazione, id_esperto, cv, certificazione, professione, ente_rilascio, "
+        "SELECT id_certificazione, id_esperto, cv, certificazione, ente_rilascio, "
         "codice_certificazione, data_rilascio, data_scadenza FROM Certificazione WHERE id_esperto = ?;");
     query.bind(1, id_esperto);
     if (query.executeStep()) {
-        return Certificazione((int)query.getColumn(0), (int)query.getColumn(1), std::string(query.getColumn(2)),
-            std::string(query.getColumn(3)), std::string(query.getColumn(4)), std::string(query.getColumn(5)),
-            (int)query.getColumn(6), parseDate(std::string(query.getColumn(7))),
-            parseDate(std::string(query.getColumn(8))));
+        return Certificazione((int)query.getColumn(0), (int)query.getColumn(1), std::string(query.getColumn(2)), std::string(query.getColumn(3)), std::string(query.getColumn(4)),
+            (int)query.getColumn(5), parseDate(std::string(query.getColumn(6))),
+            parseDate(std::string(query.getColumn(7))));
     }
     return std::nullopt;
 }
 
 bool Database::inserisciCertificazione(const Certificazione& c) {
     SQLite::Statement query(db,
-        "INSERT INTO Certificazione (id_esperto, cv, certificazione, professione, ente_rilascio, "
-        "codice_certificazione, data_rilascio, data_scadenza) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+        "INSERT INTO Certificazione (id_esperto, cv, certificazione, ente_rilascio, "
+        "codice_certificazione, data_rilascio, data_scadenza) VALUES (?, ?, ?, ?, ?, ?, ?);");
     query.bind(1, c.getIdEsperto());
     query.bind(2, c.getCv());
     query.bind(3, c.getCertificazione());
-    query.bind(4, c.getProfessione());
-    query.bind(5, c.getEnteRilascio());
-    query.bind(6, c.getCodice());
-    query.bind(7, c.getDataRilascioStr());
-    query.bind(8, c.getDataScadenzaStr());
+    query.bind(4, c.getEnteRilascio());
+    query.bind(5, c.getCodice());
+    query.bind(6, c.getDataRilascioStr());
+    query.bind(7, c.getDataScadenzaStr());
     return query.exec() > 0;
 }
 
