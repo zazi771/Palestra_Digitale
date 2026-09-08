@@ -111,8 +111,8 @@
 <div class="overlay" id="planOverlay">
     <div class="modal modal-wide">
         <button class="modal-close" id="planClose">✕</button>
-        <div class="eyebrow"><span class="rule"></span>Nuovo piano per <span id="planClientName">—</span></div>
-        <h3 class="display">Costruisci l'allenamento.</h3>
+        <div class="eyebrow"><span class="rule"></span><span id="planEyebrow">Nuovo piano per</span> <span id="planClientName">—</span></div>
+        <h3 class="display" id="planTitle">Costruisci l'allenamento.</h3>
 
         <form id="planForm" novalidate>
             <div class="form-grid">
@@ -165,8 +165,18 @@
 
             <p class="form-error" id="planError" hidden>Controlla i campi del piano e di ogni esercizio prima di salvare.</p>
 
-            <button class="btn btn-solid" type="submit">Salva piano</button>
+            <button class="btn btn-solid" type="submit" id="planSubmitBtn">Salva piano</button>
         </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL: PROGRESSI ===================== -->
+<div class="overlay" id="progressOverlay">
+    <div class="modal modal-wide">
+        <button class="modal-close" id="progressClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Progressi di <span id="progressClientName">—</span></div>
+        <h3 class="display">Allenamenti e partecipazione.</h3>
+        <div id="progressBody"></div>
     </div>
 </div>
 

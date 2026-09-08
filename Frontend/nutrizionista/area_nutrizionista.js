@@ -7,6 +7,7 @@ let nutriProfile = null;
 let clients = [];
 let activeClientId = null;
 let pastoCounter = 0;
+let editingPlanId = null;
 
 /* ---------- UTIL ---------- */
 function getUtente(){
@@ -199,15 +200,36 @@ const planError = document.getElementById("planError");
 const pastoTemplate = document.getElementById("pastoTemplate");
 const alimentoTemplate = document.getElementById("alimentoTemplate");
 
-function openPlanModal(clientId){
+function selectValue(select, value){
+    if(value === null || value === undefined) return;
+    const str = String(value);
+    select.value = str;
+    if(select.value === str) return;
+    const opt = document.createElement("option");
+    opt.value = str;
+    opt.textContent = str;
+    select.appendChild(opt);
+    select.value = str;
+}
+
+function openPlanModal(clientId, plan){
     activeClientId = clientId;
+    editingPlanId = plan ? plan.id : null;
     const client = getClient(clientId);
     document.getElementById("planClientName").textContent = client ? `${client.nome} ${client.cognome}` : "—";
+    document.getElementById("planEyebrow").textContent = plan ? "Modifica piano per" : "Nuovo piano per";
+    document.getElementById("planTitle").textContent = plan ? "Aggiorna il piano alimentare." : "Costruisci il piano alimentare.";
+    document.getElementById("planSubmitBtn").textContent = plan ? "Salva modifiche" : "Salva piano";
     planForm.reset();
     pastoList.innerHTML = "";
     pastoCounter = 0;
     planError.hidden = true;
     planError.textContent = "";
+    if(plan){
+        document.getElementById("p-nome").value = plan.nome || "";
+        document.getElementById("p-descrizione").value = plan.descrizione || "";
+        (plan.pasti || []).forEach(pasto => fillPastoCard(addPastoCard(), pasto));
+    }
     updatePastoHint();
     planOverlay.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -215,6 +237,19 @@ function openPlanModal(clientId){
 function closePlanModal(){ planOverlay.classList.remove("open"); document.body.style.overflow = ""; }
 document.getElementById("planClose").addEventListener("click", closePlanModal);
 planOverlay.addEventListener("click", (e) => { if(e.target === planOverlay) closePlanModal(); });
+
+function fillPastoCard(card, pasto){
+    selectValue(card.querySelector('[data-field="giorno"]'), giornoDaNumero(pasto.giorno));
+    selectValue(card.querySelector('[data-field="tipo"]'), pasto.tipo_pasto);
+    const alimenti = pasto.alimenti || [];
+    if(alimenti.length > 0) card.querySelector("[data-food-list]").innerHTML = "";
+    alimenti.forEach(a => {
+        const row = addAlimentoRow(card);
+        row.querySelector('[data-field="cibo"]').value = a.cibo || "";
+        row.querySelector('[data-field="quantita"]').value = a.quantita_gr ?? "";
+    });
+    updateFoodHint(card);
+}
 
 function updatePastoHint(){ noPastoHint.hidden = pastoList.children.length > 0; }
 function renumberPasti(){ pastoList.querySelectorAll("[data-pasto]").forEach((card, i) => { card.querySelector("[data-order]").textContent = i + 1; }); }
@@ -231,6 +266,7 @@ function addAlimentoRow(pastoCard){
     row.querySelector("[data-remove-food]").addEventListener("click", () => { row.remove(); updateFoodHint(pastoCard); });
     pastoCard.querySelector("[data-food-list]").appendChild(row);
     updateFoodHint(pastoCard);
+    return row;
 }
 
 function addPastoCard(){
@@ -246,6 +282,7 @@ function addPastoCard(){
     renumberPasti();
     updatePastoHint();
     addAlimentoRow(card);
+    return card;
 }
 document.getElementById("addPasto").addEventListener("click", addPastoCard);
 
@@ -257,6 +294,7 @@ planForm.addEventListener("submit", async (e) => {
     const descrizione = document.getElementById("p-descrizione").value.trim();
     const pastoCards = [...pastoList.querySelectorAll("[data-pasto]")];
     if(!nome || !descrizione || pastoCards.length === 0){
+        planError.textContent = "Compila il nome, la descrizione e aggiungi almeno un pasto.";
         planError.hidden = false;
         return;
     }
@@ -283,8 +321,11 @@ planForm.addEventListener("submit", async (e) => {
         }
         pasti.push({ giorno, tipo_pasto: tipo, alimenti });
     }
-    const r = await api(`/api/nutrizionista/${utente.id}/clienti/${activeClientId}/piani`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
+    const url = editingPlanId
+        ? `/api/nutrizionista/${utente.id}/clienti/${activeClientId}/piani/${editingPlanId}`
+        : `/api/nutrizionista/${utente.id}/clienti/${activeClientId}/piani`;
+    const r = await api(url, {
+        method: editingPlanId ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({nome, descrizione, pasti})
     });
     if(!r.ok){ planError.textContent = r.data.errore || "Errore salvataggio piano."; planError.hidden = false; return; }
@@ -325,6 +366,10 @@ async function openViewModal(clientId){
                 </div>
             </div>
             <p class="plan-desc">${p.descrizione || ""}</p>
+            <div class="row-actions plan-actions">
+                <button class="btn btn-ghost btn-small" data-edit="${p.id}">Modifica</button>
+                <button class="btn btn-ghost btn-small" data-del="${p.id}">Elimina</button>
+            </div>
             ${pasti.map(pasto => `
                 <div class="plan-ex-row">
                     <span class="ex-order">${giornoDaNumero(pasto.giorno)} · ${pasto.tipo_pasto}</span>
@@ -334,6 +379,15 @@ async function openViewModal(clientId){
                 </div>
             `).join("")}
         `;
+        div.querySelector(`[data-edit="${p.id}"]`).addEventListener("click", () => { closeViewModal(); openPlanModal(clientId, p); });
+        div.querySelector(`[data-del="${p.id}"]`).addEventListener("click", async () => {
+            if(!confirm(`Eliminare il piano "${p.nome}"?`)) return;
+            const r = await api(`/api/nutrizionista/${utente.id}/clienti/${clientId}/piani/${p.id}`, { method: 'DELETE' });
+            await caricaClienti();
+            renderClients();
+            if(r.ok) openViewModal(clientId);
+            else alert(r.data.errore || "Errore eliminazione piano.");
+        });
         container.appendChild(div);
     });
 }

@@ -7,6 +7,7 @@ let trainerProfile = null;
 let clients = [];
 let activeClientId = null;
 let exerciseCounter = 0;
+let editingPlanId = null;
 
 /* ---------- UTIL ---------- */
 function getUtente(){
@@ -135,8 +136,23 @@ certForm.addEventListener("submit", async (e) => {
         certError.hidden = false;
         return;
     }
-    if(new Date(scadenza) <= new Date(rilascio)){
+
+
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+
+    const dataScadenza = new Date(scadenza + "T00:00:00");
+
+    // Verifica che la data di scadenza sia successiva a quella di rilascio
+    if(dataScadenza <= new Date(rilascio + "T00:00:00")){
         certError.textContent = "La data di scadenza deve essere successiva alla data di rilascio.";
+        certError.hidden = false;
+        return;
+    }
+
+    // Verifica se la certificazione è già scaduta (deve essere maggiore di oggi)
+    if(dataScadenza < oggi){
+        certError.textContent = "La data di scadenza deve essere maggiore o uguale alla data attuale.";
         certError.hidden = false;
         return;
     }
@@ -180,6 +196,7 @@ function renderClients(){
             <td>
                 <div class="row-actions">
                     <button class="btn btn-ghost btn-small" data-view="${c.id}" ${count===0?"disabled style='opacity:.4;pointer-events:none;'":""}>Vedi piani</button>
+                    <button class="btn btn-ghost btn-small" data-progress="${c.id}">Progressi</button>
                     <button class="btn btn-solid btn-small" data-plan="${c.id}">Crea piano</button>
                 </div>
             </td>
@@ -188,6 +205,7 @@ function renderClients(){
     });
     body.querySelectorAll("[data-plan]").forEach(btn => btn.addEventListener("click", () => openPlanModal(Number(btn.dataset.plan))));
     body.querySelectorAll("[data-view]").forEach(btn => btn.addEventListener("click", () => openViewModal(Number(btn.dataset.view))));
+    body.querySelectorAll("[data-progress]").forEach(btn => btn.addEventListener("click", () => openProgressModal(Number(btn.dataset.progress))));
 }
 
 /* =========================================================
@@ -200,14 +218,39 @@ const noExerciseHint = document.getElementById("noExerciseHint");
 const planError = document.getElementById("planError");
 const exerciseTemplate = document.getElementById("exerciseTemplate");
 
-function openPlanModal(clientId){
+function selectValue(select, value){
+    if(value === null || value === undefined) return;
+    const str = String(value);
+    select.value = str;
+    if(select.value === str) return;
+    const opt = document.createElement("option");
+    opt.value = str;
+    opt.textContent = str;
+    select.appendChild(opt);
+    select.value = str;
+}
+
+function openPlanModal(clientId, plan){
     activeClientId = clientId;
+    editingPlanId = plan ? plan.id : null;
     const client = getClient(clientId);
     document.getElementById("planClientName").textContent = client ? `${client.nome} ${client.cognome}` : "—";
+    document.getElementById("planEyebrow").textContent = plan ? "Modifica piano per" : "Nuovo piano per";
+    document.getElementById("planTitle").textContent = plan ? "Aggiorna il piano di allenamento." : "Costruisci l'allenamento.";
+    document.getElementById("planSubmitBtn").textContent = plan ? "Salva modifiche" : "Salva piano";
     planForm.reset();
     exerciseList.innerHTML = "";
     exerciseCounter = 0;
     planError.hidden = true;
+    planError.textContent = "";
+    if(plan){
+        document.getElementById("p-nome").value = plan.nome || "";
+        selectValue(document.getElementById("p-obiettivo"), plan.obiettivo);
+        selectValue(document.getElementById("p-livello"), plan.livello_difficolta);
+        document.getElementById("p-durata").value = plan.durata_settimane || "";
+        document.getElementById("p-descrizione").value = plan.descrizione || "";
+        (plan.esercizi || []).forEach(ex => fillExerciseCard(addExerciseCard(), ex));
+    }
     updateExerciseHint();
     planOverlay.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -215,6 +258,17 @@ function openPlanModal(clientId){
 function closePlanModal(){ planOverlay.classList.remove("open"); document.body.style.overflow = ""; }
 document.getElementById("planClose").addEventListener("click", closePlanModal);
 planOverlay.addEventListener("click", (e) => { if(e.target === planOverlay) closePlanModal(); });
+
+function fillExerciseCard(card, ex){
+    const set = (f, v) => { card.querySelector(`[data-field="${f}"]`).value = (v === null || v === undefined) ? "" : v; };
+    set("nome", ex.nome);
+    set("descrizione", ex.descrizione);
+    selectValue(card.querySelector('[data-field="gruppo"]'), ex.gruppo_muscolare);
+    set("video", ex.url_video);
+    set("serie", ex.serie);
+    set("ripetizioni", ex.ripetizioni);
+    set("recupero", ex.recupero_sec);
+}
 
 function updateExerciseHint(){ noExerciseHint.hidden = exerciseList.children.length > 0; }
 function renumberExercises(){
@@ -232,6 +286,7 @@ function addExerciseCard(){
     exerciseList.appendChild(card);
     renumberExercises();
     updateExerciseHint();
+    return card;
 }
 document.getElementById("addExercise").addEventListener("click", addExerciseCard);
 
@@ -245,6 +300,7 @@ planForm.addEventListener("submit", async (e) => {
     const descrizione = document.getElementById("p-descrizione").value.trim();
     const cards = [...exerciseList.querySelectorAll("[data-ex]")];
     if(!nome || !obiettivo || !livello || !durata || !descrizione || cards.length === 0){
+        planError.textContent = "Compila tutti i campi del piano e aggiungi almeno un esercizio.";
         planError.hidden = false;
         return;
     }
@@ -252,14 +308,17 @@ planForm.addEventListener("submit", async (e) => {
     for(const card of cards){
         const get = f => card.querySelector(`[data-field="${f}"]`).value.trim();
         const eNome = get("nome"), eDesc = get("descrizione"), eGruppo = get("gruppo"), eVideo = get("video"), eSerie = get("serie"), eRip = get("ripetizioni"), eRecupero = get("recupero");
-        if(!eNome || !eDesc || !eGruppo || !eSerie || !eRip || eRecupero===""){ planError.hidden = false; return; }
+        if(!eNome || !eDesc || !eGruppo || !eSerie || !eRip || eRecupero===""){ planError.textContent = `Compila tutti i campi dell'esercizio n° ${card.querySelector("[data-order]").textContent}.`; planError.hidden = false; return; }
         esercizi.push({
             nome: eNome, descrizione: eDesc, gruppo_muscolare: eGruppo, url_video: eVideo,
             serie: Number(eSerie), ripetizioni: eRip, recupero_sec: Number(eRecupero)
         });
     }
-    const r = await api(`/api/trainer/${utente.id}/clienti/${activeClientId}/piani`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
+    const url = editingPlanId
+        ? `/api/trainer/${utente.id}/clienti/${activeClientId}/piani/${editingPlanId}`
+        : `/api/trainer/${utente.id}/clienti/${activeClientId}/piani`;
+    const r = await api(url, {
+        method: editingPlanId ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({nome, obiettivo, livello_difficolta: livello, durata_settimane: Number(durata), descrizione, esercizi})
     });
     if(!r.ok){ planError.textContent = r.data.errore || "Errore salvataggio piano."; planError.hidden = false; return; }
@@ -302,6 +361,10 @@ async function openViewModal(clientId){
                 </div>
             </div>
             <p class="plan-desc">${p.descrizione || ""}</p>
+            <div class="row-actions plan-actions">
+                <button class="btn btn-ghost btn-small" data-edit="${p.id}">Modifica</button>
+                <button class="btn btn-ghost btn-small" data-del="${p.id}">Elimina</button>
+            </div>
             ${esercizi.map(ex => `
                 <div class="plan-ex-row">
                     <span class="ex-order">${ex.ordine}</span>
@@ -313,6 +376,15 @@ async function openViewModal(clientId){
                 </div>
             `).join("")}
         `;
+        div.querySelector(`[data-edit="${p.id}"]`).addEventListener("click", () => { closeViewModal(); openPlanModal(clientId, p); });
+        div.querySelector(`[data-del="${p.id}"]`).addEventListener("click", async () => {
+            if(!confirm(`Eliminare il piano "${p.nome}"?`)) return;
+            const r = await api(`/api/trainer/${utente.id}/clienti/${clientId}/piani/${p.id}`, { method: 'DELETE' });
+            await caricaClienti();
+            renderClients();
+            if(r.ok) openViewModal(clientId);
+            else alert(r.data.errore || "Errore eliminazione piano.");
+        });
         container.appendChild(div);
     });
 }
@@ -320,6 +392,61 @@ document.getElementById("viewClose").addEventListener("click", closeViewModal);
 viewOverlay.addEventListener("click", (e) => { if(e.target === viewOverlay) closeViewModal(); });
 function closeViewModal(){ viewOverlay.classList.remove("open"); document.body.style.overflow = ""; }
 
+/* =========================================================
+   MODAL: PROGRESSI CLIENTE
+   ========================================================= */
+const progressOverlay = document.getElementById("progressOverlay");
+
+async function openProgressModal(clientId){
+    const client = getClient(clientId);
+    document.getElementById("progressClientName").textContent = client ? `${client.nome} ${client.cognome}` : "—";
+    const body = document.getElementById("progressBody");
+    body.innerHTML = `<p class="plan-empty" style="text-align:center; padding:20px;">Caricamento...</p>`;
+    progressOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    const r = await api(`/api/trainer/${utente.id}/clienti/${clientId}/progressi`);
+    if(!r.ok){
+        body.innerHTML = `<p class="plan-empty">Impossibile caricare i progressi.</p>`;
+        return;
+    }
+    const rip = r.data.riepilogo || {};
+    const perProg = r.data.per_programma || [];
+    const pct = v => (v === null || v === undefined) ? "—" : `${v}%`;
+
+    body.innerHTML = `
+        <div class="progress-stats">
+            <div class="progress-stat"><span class="ps-num">${rip.sessioni_totali ?? 0}</span><span class="ps-label">Sessioni totali</span></div>
+            <div class="progress-stat"><span class="ps-num">${rip.minuti_totali ?? 0}</span><span class="ps-label">Minuti allenati</span></div>
+            <div class="progress-stat"><span class="ps-num">${rip.media_settimanale ?? 0}</span><span class="ps-label">Sessioni / settimana</span></div>
+            <div class="progress-stat"><span class="ps-num">${pct(rip.partecipazione)}</span><span class="ps-label">Partecipazione<br>(sessioni completate)</span></div>
+        </div>
+        ${(rip.prima_sessione || rip.ultima_sessione) ? `
+        <p class="dash-sub" style="margin-top:14px;">
+            ${rip.prima_sessione ? `Prima sessione: ${formatDate(rip.prima_sessione)}` : ""}${rip.prima_sessione && rip.ultima_sessione ? " · " : ""}${rip.ultima_sessione ? `Ultima sessione: ${formatDate(rip.ultima_sessione)}` : ""}
+        </p>` : ""}
+        <h4 class="progress-caption">Dettaglio per programma</h4>
+        ${perProg.length === 0
+            ? `<p class="plan-empty">Nessuna sessione registrata per questo cliente.</p>`
+            : `<div class="table-card"><table class="clients-table">
+                <thead><tr><th>Programma</th><th>Sessioni</th><th>Completate</th><th>Minuti</th><th>Partecipazione</th></tr></thead>
+                <tbody>
+                ${perProg.map(pp => `
+                    <tr>
+                        <td><strong>${pp.nome}</strong></td>
+                        <td>${pp.sessioni_totali}</td>
+                        <td>${pp.sessioni_completate}</td>
+                        <td>${pp.minuti_totali}</td>
+                        <td>${pct(pp.partecipazione)}</td>
+                    </tr>`).join("")}
+                </tbody>
+            </table></div>`}
+    `;
+}
+function closeProgressModal(){ progressOverlay.classList.remove("open"); document.body.style.overflow = ""; }
+document.getElementById("progressClose").addEventListener("click", closeProgressModal);
+progressOverlay.addEventListener("click", (e) => { if(e.target === progressOverlay) closeProgressModal(); });
+
 document.addEventListener("keydown", (e) => {
-    if(e.key === "Escape"){ closePlanModal(); closeViewModal(); }
+    if(e.key === "Escape"){ closePlanModal(); closeViewModal(); closeProgressModal(); }
 });

@@ -6,6 +6,7 @@
 #include "uploads.h"
 #include <sstream>
 #include <unordered_map>
+#include <cmath>
 
 namespace  {
 
@@ -14,6 +15,35 @@ std::unordered_map<int, Esercizio> mappaEsercizi(Database& db) {
     std::unordered_map<int, Esercizio> m;
     for (const auto& e : db.getTuttiEsercizi()) m.emplace(e.getId(), e);
     return m;
+}
+
+// Inserisce gli esercizi ricevuti dal client (crea o riusa le righe Esercizio) per un programma.
+void salvaEsercizi(Database& db, const crow::json::rvalue& listaEs, int idProgramma) {
+    if (listaEs.t() != crow::json::type::List) return;
+    int ordine = 1;
+    for (const auto& es : listaEs) {
+        std::string esNome = es.has("nome") ? std::string(es["nome"]) : "";
+        std::string esDesc = es.has("descrizione") ? std::string(es["descrizione"]) : "";
+        std::string esGruppo = es.has("gruppo_muscolare") ? std::string(es["gruppo_muscolare"]) : "";
+        std::string esVideo = es.has("url_video") ? std::string(es["url_video"]) : "";
+        int esSerie = es.has("serie") ? (int)es["serie"] : 0;
+        std::string esRip = es.has("ripetizioni") ? std::string(es["ripetizioni"]) : "";
+        int esRecupero = es.has("recupero_sec") ? (int)es["recupero_sec"] : 0;
+
+        if (esNome.empty()) continue;
+
+        Esercizio ex(0, esNome, esDesc, esGruppo, esVideo);
+        int idEsercizio = db.inserisciEsercizio(ex);
+
+        Programma_esercizio pe(0, idProgramma, idEsercizio, ordine, esSerie, esRip, esRecupero);
+        db.inserisciProgrammaEsercizio(pe);
+        ordine++;
+    }
+}
+
+double arrotonda(double v, int dec) {
+    double f = std::pow(10.0, dec);
+    return std::round(v * f) / f;
 }
 
 
@@ -217,28 +247,7 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
             db.assegnaProgramma(clienteId, idProgramma, oss.str());
 
             // 3) inserisce gli esercizi
-            if (body.has("esercizi") && body["esercizi"].t() == crow::json::type::List) {
-                int ordine = 1;
-                for (const auto& es : body["esercizi"]) {
-                    std::string esNome = es.has("nome") ? std::string(es["nome"]) : "";
-                    std::string esDesc = es.has("descrizione") ? std::string(es["descrizione"]) : "";
-                    std::string esGruppo = es.has("gruppo_muscolare") ? std::string(es["gruppo_muscolare"]) : "";
-                    std::string esVideo = es.has("url_video") ? std::string(es["url_video"]) : "";
-                    int esSerie = es.has("serie") ? (int)es["serie"] : 0;
-                    std::string esRip = es.has("ripetizioni") ? std::string(es["ripetizioni"]) : "";
-                    int esRecupero = es.has("recupero_sec") ? (int)es["recupero_sec"] : 0;
-
-                    if (esNome.empty()) continue;
-
-                    // Crea (o riusa) l'esercizio e ottiene l'id
-                    Esercizio ex(0, esNome, esDesc, esGruppo, esVideo);
-                    int idEsercizio = db.inserisciEsercizio(ex);
-
-                    Programma_esercizio pe(0, idProgramma, idEsercizio, ordine, esSerie, esRip, esRecupero);
-                    db.inserisciProgrammaEsercizio(pe);
-                    ordine++;
-                }
-            }
+            salvaEsercizi(db, body["esercizi"], idProgramma);
 
             crow::json::wvalue w;
             w["id"] = idProgramma;
@@ -248,6 +257,126 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
         } catch (...) {
             return crow::response(500, R"({"errore":"Errore sconosciuto"})");
         }
+    });
+
+    // PUT /api/trainer/<id>/clienti/<clienteId>/piani/<pianoId>  -> aggiorna programma + sostituisce esercizi
+    CROW_ROUTE(app, "/api/trainer/<int>/clienti/<int>/piani/<int>").methods(crow::HTTPMethod::PUT)
+    ([&db](const crow::request& req, int idTrainer, int clienteId, int pianoId) {
+        try{
+            auto body = crow::json::load(req.body);
+            if (!body) return crow::response(400, R"({"errore":"Body JSON non valido"})");
+
+            std::string nome = body.has("nome") ? std::string(body["nome"]) : "";
+            std::string obiettivo = body.has("obiettivo") ? std::string(body["obiettivo"]) : "";
+            std::string livello = body.has("livello_difficolta") ? std::string(body["livello_difficolta"]) : "";
+            int durata = body.has("durata_settimane") ? (int)body["durata_settimane"] : 0;
+            std::string descrizione = body.has("descrizione") ? std::string(body["descrizione"]) : "";
+
+            if (nome.empty() || obiettivo.empty() || livello.empty()) {
+                return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
+            }
+
+            // Verifica che il piano esista e appartenga davvero a questo trainer/cliente
+            bool esiste = false;
+            for (const auto& pr : db.getProgrammiByCliente(clienteId)) {
+                if (pr.getId() == pianoId && pr.getIdTrainer() == idTrainer) { esiste = true; break; }
+            }
+
+            if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+
+            Programma_allenamento prog(pianoId, idTrainer, nome, obiettivo, livello, durata, descrizione);
+            if (!db.aggiornaProgramma(prog)) return crow::response(500, R"({"errore":"Errore aggiornamento piano"})");
+
+            // Sostituisce gli esercizi del programma con quelli ricevuti
+            db.eliminaEserciziByProgramma(pianoId);
+            salvaEsercizi(db, body["esercizi"], pianoId);
+
+            return crow::response(200, R"({"esito":"ok"})");
+        } catch (const std::exception& e) {
+            return crow::response(500, std::string(R"({"errore":")") + e.what() + R"("})");
+        } catch (...) {
+            return crow::response(500, R"({"errore":"Errore sconosciuto"})");
+        }
+    });
+
+    // DELETE /api/trainer/<id>/clienti/<clienteId>/piani/<pianoId>  -> elimina il piano del cliente
+    CROW_ROUTE(app, "/api/trainer/<int>/clienti/<int>/piani/<int>").methods(crow::HTTPMethod::Delete)
+    ([&db](int idTrainer, int clienteId, int pianoId) {
+        bool esiste = false;
+        for (const auto& pr : db.getProgrammiByCliente(clienteId)) {
+            if (pr.getId() == pianoId && pr.getIdTrainer() == idTrainer) { esiste = true; break; }
+        }
+        if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (!db.eliminaProgramma(pianoId)) return crow::response(500, R"({"errore":"Errore eliminazione piano"})");
+        return crow::response(200, R"({"esito":"ok"})");
+    });
+
+    // GET /api/trainer/<id>/clienti/<clienteId>/progressi  -> statistiche allenamento del cliente
+    CROW_ROUTE(app, "/api/trainer/<int>/clienti/<int>/progressi")
+    ([&db](int /*idTrainer*/, int clienteId) {
+        auto sessioni = db.getSessioniByCliente(clienteId);
+        auto programmi = db.getProgrammiByCliente(clienteId);
+
+        int totale = (int)sessioni.size();
+        int minuti = 0, completate = 0;
+        date prima{}, ultima{};
+        bool has = false;
+        for (const auto& s : sessioni) {
+            minuti += s.getTempoMinuti();
+            if (s.getCompletato() == 1) completate++;
+            const auto d = s.getData();
+            if (!has || d < prima) prima = d;
+            if (!has || d > ultima) ultima = d;
+            has = true;
+        }
+
+        double mediaSettimanale = 0.0;
+        if (totale > 0) {
+            auto oggi = std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now());
+            long giorni = (long)(oggi - std::chrono::sys_days{prima}).count();
+            long settimane = (giorni / 7) + 1;
+            if (settimane < 1) settimane = 1;
+            mediaSettimanale = arrotonda((double)totale / (double)settimane, 1);
+        }
+        double partecipazione = totale > 0 ? arrotonda((double)completate * 100.0 / (double)totale, 1) : 0.0;
+
+        crow::json::wvalue riepilogo;
+        riepilogo["sessioni_totali"] = totale;
+        riepilogo["minuti_totali"] = minuti;
+        riepilogo["sessioni_completate"] = completate;
+        riepilogo["media_settimanale"] = mediaSettimanale;
+        riepilogo["partecipazione"] = partecipazione;
+        riepilogo["prima_sessione"] = has ? prima.year() == std::chrono::year{0} ? "" : Sessione(0,0,0,prima,0,0).getDataStr() : "";
+        riepilogo["ultima_sessione"] = has ? ultima.year() == std::chrono::year{0} ? "" : Sessione(0,0,0,ultima,0,0).getDataStr() : "";
+
+        std::vector<crow::json::wvalue> arrProg;
+        for (const auto& pr : programmi) {
+            int pTot = 0, pMin = 0, pComp = 0;
+            date pUltima{};
+            bool pHas = false;
+            for (const auto& s : sessioni) {
+                if (s.getIdProgramma() != pr.getId()) continue;
+                pTot++;
+                pMin += s.getTempoMinuti();
+                if (s.getCompletato() == 1) pComp++;
+                if (!pHas || s.getData() > pUltima) pUltima = s.getData();
+                pHas = true;
+            }
+            crow::json::wvalue pj;
+            pj["id"] = pr.getId();
+            pj["nome"] = pr.getNome();
+            pj["sessioni_totali"] = pTot;
+            pj["minuti_totali"] = pMin;
+            pj["sessioni_completate"] = pComp;
+            pj["partecipazione"] = pTot > 0 ? arrotonda((double)pComp * 100.0 / (double)pTot, 1) : 0.0;
+            pj["ultima_sessione"] = pHas ? Sessione(0,0,0,pUltima,0,0).getDataStr() : "";
+            arrProg.push_back(std::move(pj));
+        }
+
+        crow::json::wvalue w;
+        w["riepilogo"] = std::move(riepilogo);
+        w["per_programma"] = std::move(arrProg);
+        return crow::response(200, w);
     });
 
     // GET /api/esercizi  -> elenco di tutti gli esercizi disponibili

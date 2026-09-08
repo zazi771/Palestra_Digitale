@@ -63,6 +63,9 @@ public:
     //PIANO ALIMENTARE
     std::vector<Piano_alimentare> getPianiByCliente(int id_cliente);
     int inserisciPianoAlimentare(const Piano_alimentare& p);        // ritorna id_piano
+    bool aggiornaPianoAlimentare(const Piano_alimentare& p);
+    bool eliminaPianoAlimentare(int id_piano);                      // elimina anche pasti e alimenti collegati
+    bool eliminaPastiByPiano(int id_piano);                         // elimina solo pasti e alimenti del piano
     std::vector<Pasto> getPastiByPiano(int id_piano);
     int inserisciPasto(const Pasto& p);                             // ritorna id_pasto
     std::vector<Pasto_cibo> getAlimentiByPasto(int id_pasto);
@@ -72,6 +75,9 @@ public:
     //PROGRAMMA ALLENAMENTO
     std::vector<Programma_allenamento> getProgrammiByCliente(int id_cliente);
     int inserisciProgramma(const Programma_allenamento& p);         // ritorna id_programma
+    bool aggiornaProgramma(const Programma_allenamento& p);
+    bool eliminaProgramma(int id_programma);                        // elimina anche esercizi e assegnazioni
+    bool eliminaEserciziByProgramma(int id_programma);
     std::vector<Programma_esercizio> getEserciziByProgramma(int id_programma);
     bool inserisciProgrammaEsercizio(const Programma_esercizio& pe);
     //

@@ -67,6 +67,32 @@ int trovaOInserisciCibo(Database& db, const std::string& nome) {
     return db.inserisciCibo(nuovo);
 }
 
+// Inserisce i pasti (con i relativi alimenti) ricevuti dal client per un piano.
+void salvaPasti(Database& db, const crow::json::rvalue& listaPa, int idPiano) {
+    if (listaPa.t() != crow::json::type::List) return;
+    for (const auto& pa : listaPa) {
+        std::string giorno = pa.has("giorno") ? std::string(pa["giorno"]) : "";
+        std::string tipo = pa.has("tipo_pasto") ? std::string(pa["tipo_pasto"]) : "Pasto";
+        int giornoNum = giornoToInt(giorno);
+
+        if (pa.has("alimenti") && pa["alimenti"].t() == crow::json::type::List) {
+            for (const auto& al : pa["alimenti"]) {
+                std::string ciboNome = al.has("cibo") ? std::string(al["cibo"]) : "";
+                int quantita = al.has("quantita_gr") ? (int)al["quantita_gr"] : 0;
+                if (ciboNome.empty()) continue;
+
+                int idCibo = trovaOInserisciCibo(db, ciboNome);
+
+                // Un pasto per alimento (per visualizzare nome + quantità)
+                Pasto pasto(0, idPiano, idCibo, giornoNum, tipo);
+                int idPasto = db.inserisciPasto(pasto);
+                Pasto_cibo pc(0, idPasto, idCibo, quantita);
+                db.inserisciPastoCibo(pc);
+            }
+        }
+    }
+}
+
 }
 
 void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::string& uploadsDir) {
@@ -221,33 +247,51 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
         if (idPiano <= 0) return crow::response(500, R"({"errore":"Errore salvataggio piano"})");
 
         // 2) inserisce pasti + alimenti
-        if (body.has("pasti") && body["pasti"].t() == crow::json::type::List) {
-            for (const auto& pa : body["pasti"]) {
-                std::string giorno = pa.has("giorno") ? std::string(pa["giorno"]) : "";
-                std::string tipo = pa.has("tipo_pasto") ? std::string(pa["tipo_pasto"]) : "Pasto";
-                int giornoNum = giornoToInt(giorno);
-
-                if (pa.has("alimenti") && pa["alimenti"].t() == crow::json::type::List) {
-                    for (const auto& al : pa["alimenti"]) {
-                        std::string ciboNome = al.has("cibo") ? std::string(al["cibo"]) : "";
-                        int quantita = al.has("quantita_gr") ? (int)al["quantita_gr"] : 0;
-                        if (ciboNome.empty()) continue;
-
-                        int idCibo = trovaOInserisciCibo(db, ciboNome);
-
-                        // Un pasto per alimento (per visualizzare nome + quantità)
-                        Pasto pasto(0, idPiano, idCibo, giornoNum, tipo);
-                        int idPasto = db.inserisciPasto(pasto);
-                        Pasto_cibo pc(0, idPasto, idCibo, quantita);
-                        db.inserisciPastoCibo(pc);
-                    }
-                }
-            }
-        }
+        salvaPasti(db, body["pasti"], idPiano);
 
         crow::json::wvalue w;
         w["id"] = idPiano;
         return crow::response(201, w);
+    });
+
+    // PUT /api/nutrizionista/<id>/clienti/<clienteId>/piani/<pianoId>  -> aggiorna piano + sostituisce pasti
+    CROW_ROUTE(app, "/api/nutrizionista/<int>/clienti/<int>/piani/<int>").methods(crow::HTTPMethod::PUT)
+    ([&db](const crow::request& req, int idNutri, int clienteId, int pianoId) {
+        auto body = crow::json::load(req.body);
+        if (!body) return crow::response(400, R"({"errore":"Body JSON non valido"})");
+
+        std::string nome = body.has("nome") ? std::string(body["nome"]) : "";
+        std::string descrizione = body.has("descrizione") ? std::string(body["descrizione"]) : "";
+
+        if (nome.empty()) return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
+
+        // Verifica che il piano esista e appartenga davvero a questo nutrizionista/cliente
+        bool esiste = false;
+        for (const auto& p : db.getPianiByCliente(clienteId)) {
+            if (p.getId() == pianoId && p.getIdNutrizionista() == idNutri) { esiste = true; break; }
+        }
+        if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+
+        Piano_alimentare piano(pianoId, idNutri, nome, descrizione, clienteId);
+        if (!db.aggiornaPianoAlimentare(piano)) return crow::response(500, R"({"errore":"Errore aggiornamento piano"})");
+
+        // Sostituisce i pasti del piano con quelli ricevuti
+        db.eliminaPastiByPiano(pianoId);
+        salvaPasti(db, body["pasti"], pianoId);
+
+        return crow::response(200, R"({"esito":"ok"})");
+    });
+
+    // DELETE /api/nutrizionista/<id>/clienti/<clienteId>/piani/<pianoId>  -> elimina il piano del cliente
+    CROW_ROUTE(app, "/api/nutrizionista/<int>/clienti/<int>/piani/<int>").methods(crow::HTTPMethod::Delete)
+    ([&db](int idNutri, int clienteId, int pianoId) {
+        bool esiste = false;
+        for (const auto& p : db.getPianiByCliente(clienteId)) {
+            if (p.getId() == pianoId && p.getIdNutrizionista() == idNutri) { esiste = true; break; }
+        }
+        if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (!db.eliminaPianoAlimentare(pianoId)) return crow::response(500, R"({"errore":"Errore eliminazione piano"})");
+        return crow::response(200, R"({"esito":"ok"})");
     });
 
     // GET /api/cibi  -> elenco alimenti disponibili (con opzione ?q= per ricerca)

@@ -4,6 +4,7 @@
 
 #include "Database.h"
 #include <sstream>
+#include <iostream>
 
 Database::Database(const std::string& percorsoFile)
     : db(percorsoFile, SQLite::OPEN_READWRITE) {
@@ -278,6 +279,62 @@ int Database::inserisciPianoAlimentare(const Piano_alimentare& p) {
     return (int)db.getLastInsertRowid();
 }
 
+bool Database::aggiornaPianoAlimentare(const Piano_alimentare& p) {
+    SQLite::Statement query(db,
+        "UPDATE Piano_alimentare SET nome = ?, descrizione = ? WHERE id_piano = ?;");
+    query.bind(1, p.getNome());
+    query.bind(2, p.getDescrizione());
+    query.bind(3, p.getId());
+    return query.exec() > 0;
+}
+
+bool Database::eliminaPastiByPiano(int id_piano) {
+    try {
+        SQLite::Statement delAlimenti(db,
+            "DELETE FROM Pasto_cibo WHERE id_pasto IN (SELECT id_pasto FROM Pasto WHERE id_piano = ?);");
+        delAlimenti.bind(1, id_piano);
+        delAlimenti.exec();
+
+        SQLite::Statement delPasti(db, "DELETE FROM Pasto WHERE id_piano = ?;");
+        delPasti.bind(1, id_piano);
+        return delPasti.exec() > 0;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool Database::eliminaPianoAlimentare(int id_piano) {
+    try {
+        db.exec("BEGIN IMMEDIATE;");
+        SQLite::Statement delFeedback(db, "DELETE FROM Feedback WHERE id_piano = ?;");
+        delFeedback.bind(1, id_piano);
+        delFeedback.exec();
+
+        SQLite::Statement delAlimenti(db,
+            "DELETE FROM Pasto_cibo WHERE id_pasto IN (SELECT id_pasto FROM Pasto WHERE id_piano = ?);");
+        delAlimenti.bind(1, id_piano);
+        delAlimenti.exec();
+
+        SQLite::Statement delPasti(db, "DELETE FROM Pasto WHERE id_piano = ?;");
+        delPasti.bind(1, id_piano);
+        delPasti.exec();
+
+        SQLite::Statement delPiano(db, "DELETE FROM Piano_alimentare WHERE id_piano = ?;");
+        delPiano.bind(1, id_piano);
+        bool ok = delPiano.exec() > 0;
+        db.exec("COMMIT;");
+        return ok;
+    } catch (const std::exception& e) {
+        try { db.exec("ROLLBACK;"); } catch (...) {}
+        std::cerr << "[eliminaPianoAlimentare] " << id_piano << ": " << e.what() << std::endl;
+        return false;
+    } catch (...) {
+        try { db.exec("ROLLBACK;"); } catch (...) {}
+        std::cerr << "[eliminaPianoAlimentare] " << id_piano << ": eccezione sconosciuta" << std::endl;
+        return false;
+    }
+}
+
 std::vector<Pasto> Database::getPastiByPiano(int id_piano) {
     std::vector<Pasto> risultato;
     SQLite::Statement query(db,
@@ -356,6 +413,54 @@ int Database::inserisciProgramma(const Programma_allenamento& p) {
     return (int)db.getLastInsertRowid();
 }
 
+bool Database::aggiornaProgramma(const Programma_allenamento& p) {
+    SQLite::Statement query(db,
+        "UPDATE Programma_allenamento SET nome = ?, obiettivo = ?, livello_difficolta = ?, durata_settimane = ?, "
+        "descrizione = ? WHERE id_programma = ?;");
+    query.bind(1, p.getNome());
+    query.bind(2, p.getObiettivo());
+    query.bind(3, p.getLivelloDifficolta());
+    query.bind(4, p.getDurataSettimane());
+    query.bind(5, p.getDescrizione());
+    query.bind(6, p.getId());
+    return query.exec() > 0;
+}
+
+bool Database::eliminaProgramma(int id_programma) {
+    try {
+        db.exec("BEGIN IMMEDIATE;");
+        SQLite::Statement delFeedback(db, "DELETE FROM Feedback WHERE id_programma = ?;");
+        delFeedback.bind(1, id_programma);
+        delFeedback.exec();
+
+        /*SQLite::Statement delSessioni(db, "DELETE FROM Sessione WHERE id_programma = ?;");
+        delSessioni.bind(1, id_programma);
+        delSessioni.exec();*/
+
+        SQLite::Statement delEsercizi(db, "DELETE FROM Programma_esercizio WHERE id_programma = ?;");
+        delEsercizi.bind(1, id_programma);
+        delEsercizi.exec();
+
+        SQLite::Statement delAssegnazioni(db, "DELETE FROM Utente_Programma WHERE id_programma = ?;");
+        delAssegnazioni.bind(1, id_programma);
+        delAssegnazioni.exec();
+
+        SQLite::Statement delProgramma(db, "DELETE FROM Programma_allenamento WHERE id_programma = ?;");
+        delProgramma.bind(1, id_programma);
+        bool ok = delProgramma.exec() > 0;
+        db.exec("COMMIT;");
+        return ok;
+    } catch (const std::exception& e) {
+        try { db.exec("ROLLBACK;"); } catch (...) {}
+        std::cerr << "[eliminaProgramma] " << id_programma << ": " << e.what() << std::endl;
+        return false;
+    } catch (...) {
+        try { db.exec("ROLLBACK;"); } catch (...) {}
+        std::cerr << "[eliminaProgramma] " << id_programma << ": eccezione sconosciuta" << std::endl;
+        return false;
+    }
+}
+
 std::vector<Programma_esercizio> Database::getEserciziByProgramma(int id_programma) {
     std::vector<Programma_esercizio> risultato;
     SQLite::Statement query(db,
@@ -368,6 +473,12 @@ std::vector<Programma_esercizio> Database::getEserciziByProgramma(int id_program
             (int)query.getColumn(4), std::string(query.getColumn(5)), (int)query.getColumn(6)));
     }
     return risultato;
+}
+
+bool Database::eliminaEserciziByProgramma(int id_programma) {
+    SQLite::Statement query(db, "DELETE FROM Programma_esercizio WHERE id_programma = ?;");
+    query.bind(1, id_programma);
+    return query.exec() > 0;
 }
 
 bool Database::inserisciProgrammaEsercizio(const Programma_esercizio& pe) {

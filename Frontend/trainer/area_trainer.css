@@ -238,7 +238,8 @@
     overflow-y:auto;
 }
 .overlay#planOverlay .modal,
-.overlay#viewOverlay .modal{
+.overlay#viewOverlay .modal,
+.overlay#progressOverlay .modal{
     text-align:left;
 }
 
@@ -348,4 +349,35 @@
 }
 .plan-empty{
     color:var(--muted);font-size:14px;padding:30px 0;text-align:center;
+}
+
+/* ===================== PROGRESSI (view) ===================== */
+.plan-actions{margin-top:2px;margin-bottom:6px;}
+.progress-stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+    margin-top:24px;
+}
+.progress-stat{
+    background:var(--ink);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 16px;
+    text-align:center;
+}
+.progress-stat .ps-num{
+    display:block;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:42px;font-weight:400;line-height:1;
+    color:var(--mint);
+}
+.progress-stat .ps-label{
+    display:block;
+    font-size:12px;color:var(--muted);
+    margin-top:8px;
+}
+.progress-caption{
+    font-size:16px;margin:22px 0 12px;
+}
+@media (max-width:700px){
+    .progress-stats{grid-template-columns:1fr 1fr;}
 }
