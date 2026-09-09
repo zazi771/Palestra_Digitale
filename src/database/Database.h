@@ -22,6 +22,16 @@
 #include "models/Sessione.h"
 #include "models/Utente_programma.h"
 
+// Riga leggera di join Utente<->Programma (stato + data_inizio dell'assegnazione).
+// Non e' un model completo: serve solo ad arricchire le risposte REST lato cliente.
+struct AssegnazioneProgramma {
+    int id_assegnazione;
+    int id_utente;
+    int id_programma;
+    std::string data_inizio;
+    std::string stato;
+};
+
 class Database {
 private:
     SQLite::Database db;
@@ -84,6 +94,8 @@ public:
 
     //ASSEGNAZIONE PROGRAMMA <-> UTENTE
     bool assegnaProgramma(int id_utente, int id_programma, const std::string& data_inizio);
+    std::vector<AssegnazioneProgramma> getAssegnazioniByCliente(int id_cliente);
+    bool aggiornaStatoAssegnazione(int id_utente, int id_programma, const std::string& nuovo_stato);
     //
     //Sessione
     std::vector<Sessione> getSessioniByCliente(int id_cliente);

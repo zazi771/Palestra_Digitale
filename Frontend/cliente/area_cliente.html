@@ -82,7 +82,44 @@
 
     <!-- ---------- TAB: ALLENAMENTO ---------- -->
     <div class="tab-panel" id="tab-allenamento">
-        <div id="programmaView"></div>
+
+        <div id="timerBar" class="timer-bar" hidden>
+            <span class="timer-dot"></span>
+            <span class="timer-label">Sessione in corso — <strong id="timerProgName">—</strong></span>
+            <span class="timer-clock" id="timerClock">00:00</span>
+            <button class="btn btn-solid btn-small" id="stopSessionBtn">Termina sessione</button>
+        </div>
+
+        <div class="panel-head">
+            <p class="dash-sub2">I tuoi programmi assegnati. Filtra per trovare quello più adatto e avvia la sessione quando sei pronto.</p>
+        </div>
+
+        <div class="filters-row" id="progFilters">
+            <div class="field">
+                <label for="filterObiettivo">Obiettivo</label>
+                <select id="filterObiettivo"><option value="">Tutti</option></select>
+            </div>
+            <div class="field">
+                <label for="filterLivello">Livello</label>
+                <select id="filterLivello">
+                    <option value="">Tutti</option>
+                    <option>Principiante</option>
+                    <option>Intermedio</option>
+                    <option>Avanzato</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filterDurata">Durata</label>
+                <select id="filterDurata">
+                    <option value="">Tutte</option>
+                    <option value="breve">Fino a 6 settimane</option>
+                    <option value="media">7–10 settimane</option>
+                    <option value="lunga">11+ settimane</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="programmiView"></div>
     </div>
 
     <!-- ---------- TAB: PROGRESSI ---------- -->
@@ -107,6 +144,19 @@
     </div>
 </div>
 
+<!-- ===================== MODAL: FINE SESSIONE ===================== -->
+<div class="overlay" id="sessioneOverlay">
+    <div class="modal">
+        <button class="modal-close" id="sessioneClose">✕</button>
+        <div class="eyebrow"><span class="rule"></span>Sessione conclusa</div>
+        <h3 class="display">Com'è andata?</h3>
+        <p class="dash-sub2" id="sessioneRecap"></p>
+        <div class="row-actions" style="justify-content:center; margin-top:24px; gap:12px;">
+            <button class="btn btn-ghost" id="sessioneNonCompletata">Non completata</button>
+            <button class="btn btn-solid" id="sessioneCompletata">Completata ✓</button>
+        </div>
+    </div>
+</div>
 <script src="/cliente/area_cliente.js"></script>
 </body>
 </html>

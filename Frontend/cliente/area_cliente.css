@@ -237,3 +237,153 @@
 .check-missed .check-icon{background:var(--coral-dim);color:var(--coral);}
 .check-done span:last-child{color:var(--paper);}
 .check-missed span:last-child{color:var(--muted);text-decoration:line-through;}
+
+/* ===================== ALLENAMENTO — FILTRI PROGRAMMI ===================== */
+.filters-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin:18px 0 30px;
+}
+.filters-row .field{
+    min-width:180px;
+    margin-bottom:0;
+    flex:1;
+}
+.filters-row select{
+    width:100%;
+    background:var(--ink);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    color:var(--paper);
+    font-size:14px;
+    font-family:inherit;
+    transition:border-color .15s ease;
+}
+.filters-row select:focus{outline:none;border-color:var(--coral);}
+
+/* ===================== ALLENAMENTO — CARD PROGRAMMA ===================== */
+.prog-card{
+    background:var(--ink);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:16px;
+}
+.prog-card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+}
+.prog-card-head h5{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:22px;
+    font-weight:400;
+    letter-spacing:0.02em;
+    color:var(--paper);
+}
+.prog-status{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:5px 12px;
+    border-radius:100px;
+    white-space:nowrap;
+}
+.prog-status.non-iniziato{background:var(--ink-3);color:var(--muted);}
+.prog-status.in-corso{background:rgba(189,247,214,.15);color:var(--mint);}
+.prog-status.terminato{background:var(--coral-dim);color:var(--coral);}
+
+.prog-card .plan-desc{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.6;
+    margin-top:10px;
+}
+
+.prog-toggle-ex{
+    color:var(--mint);
+    font-size:13px;
+    font-weight:600;
+    background:none;
+    border:none;
+    padding:0;
+    margin-top:14px;
+    cursor:pointer;
+    font-family:inherit;
+    text-decoration:underline;
+    text-underline-offset:3px;
+}
+.prog-toggle-ex:hover{color:var(--paper);}
+
+.prog-ex-list{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.prog-card-actions{
+    margin-top:18px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.prog-empty{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--muted);
+    font-size:14px;
+}
+
+/* ===================== ALLENAMENTO — TIMER SESSIONE LIVE ===================== */
+.timer-bar{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--ink-3);
+    border:1px solid var(--coral);
+    border-radius:14px;
+    padding:14px 20px;
+    margin-bottom:24px;
+    position:sticky;
+    top:14px;
+    z-index:5;
+}
+.timer-dot{
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--coral);
+    flex-shrink:0;
+    box-shadow:0 0 0 0 var(--coral-dim);
+    animation:timerPulse 1.2s ease-in-out infinite;
+}
+@keyframes timerPulse{
+    0%,100%{box-shadow:0 0 0 0 var(--coral-dim);}
+    50%{box-shadow:0 0 0 6px transparent;}
+}
+.timer-label{
+    color:var(--muted);
+    font-size:14px;
+}
+.timer-label strong{color:var(--paper);}
+.timer-clock{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:22px;
+    letter-spacing:0.04em;
+    color:var(--mint);
+    margin-left:auto;
+    font-variant-numeric:tabular-nums;
+}
+
+@media (max-width:760px){
+    .timer-bar{flex-wrap:wrap;}
+    .timer-clock{margin-left:0;order:3;width:100%;text-align:left;}
+}

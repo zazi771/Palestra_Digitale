@@ -507,6 +507,29 @@ bool Database::assegnaProgramma(int id_utente, int id_programma, const std::stri
     return query.exec() > 0;
 }
 
+std::vector<AssegnazioneProgramma> Database::getAssegnazioniByCliente(int id_cliente) {
+    std::vector<AssegnazioneProgramma> risultato;
+    SQLite::Statement query(db,
+        "SELECT id_assegnazione, id_utente, id_programma, data_inizio, stato "
+        "FROM Utente_Programma WHERE id_utente = ?;");
+    query.bind(1, id_cliente);
+    while (query.executeStep()) {
+        risultato.push_back(AssegnazioneProgramma{
+            (int)query.getColumn(0), (int)query.getColumn(1), (int)query.getColumn(2),
+            std::string(query.getColumn(3)), std::string(query.getColumn(4))});
+    }
+    return risultato;
+}
+
+bool Database::aggiornaStatoAssegnazione(int id_utente, int id_programma, const std::string& nuovo_stato) {
+    SQLite::Statement query(db,
+        "UPDATE Utente_Programma SET stato = ? WHERE id_utente = ? AND id_programma = ?;");
+    query.bind(1, nuovo_stato);
+    query.bind(2, id_utente);
+    query.bind(3, id_programma);
+    return query.exec() > 0;
+}
+
 // =====================================================================
 // SESSIONE
 // =====================================================================

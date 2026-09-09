@@ -6,9 +6,18 @@
 let utente = null; // dati utente dal backend
 let clinicalRecords = [];
 let pianoAlimentare = null;  // primo piano alimentare del cliente
-let programmaAllenamento = null;
+let programmiAssegnati = [];   // TUTTI i programmi assegnati al cliente (con stato/data_inizio)
 let sessioni = [];
 let utenteCliente = null; // profilo dal backend
+
+/* ---------- STATO FILTRI ALLENAMENTO ---------- */
+let filtroObiettivo = "";
+let filtroLivello = "";
+let filtroDurata = "";
+
+/* ---------- STATO TIMER SESSIONE LIVE ---------- */
+let sessioneAttiva = null;   // { idProgramma, nomeProgramma, startedAt }
+let timerInterval = null;
 
 /* ---------- UTIL ---------- */
 function getUtente(){
@@ -111,8 +120,7 @@ async function caricaPianoAlimentare(){
 async function caricaProgramma(){
     const r = await api(`/api/cliente/${utente.id}/programma-allenamento`);
     if(!r.ok) return;
-    const programmi = r.data.programmi || [];
-    programmaAllenamento = programmi.length > 0 ? programmi[0] : null;
+    programmiAssegnati = r.data.programmi || [];
 }
 
 async function caricaSessioni(){
@@ -361,43 +369,177 @@ function renderPianoAlimentare(){
 }
 
 /* =========================================================
-   TAB: ALLENAMENTO (dal backend)
+   TAB: ALLENAMENTO (dal backend) — lista filtrabile + tracking sessioni
    ========================================================= */
-function renderProgramma(){
-    const container = document.getElementById("programmaView");
-    if(!programmaAllenamento){
+const STATO_CLASSE = { "Non iniziato": "non-iniziato", "In corso": "in-corso", "Terminato": "terminato" };
+function durataBucket(settimane){
+    if(settimane <= 6) return "breve";
+    if(settimane <= 10) return "media";
+    return "lunga";
+}
+
+function popolaFiltroObiettivi(){
+    const sel = document.getElementById("filterObiettivo");
+    const attuale = sel.value;
+    const obiettivi = [...new Set(programmiAssegnati.map(p => p.obiettivo).filter(Boolean))];
+    sel.innerHTML = `<option value="">Tutti</option>` + obiettivi.map(o => `<option${o===attuale?" selected":""}>${o}</option>`).join("");
+}
+
+function programmiFiltrati(){
+    return programmiAssegnati.filter(p =>
+        (!filtroObiettivo || p.obiettivo === filtroObiettivo) &&
+        (!filtroLivello || p.livello_difficolta === filtroLivello) &&
+        (!filtroDurata || durataBucket(p.durata_settimane) === filtroDurata)
+    );
+}
+
+function renderProgrammi(){
+    popolaFiltroObiettivi();
+    const container = document.getElementById("programmiView");
+
+    if(programmiAssegnati.length === 0){
         container.innerHTML = `<p class="plan-empty">Nessun programma di allenamento assegnato dal trainer.</p>`;
         return;
     }
-    const esercizi = (programmaAllenamento.esercizi || []).map(e => ({
-        nome: e.nome || "Esercizio",
-        serie: e.serie,
-        ripetizioni: e.ripetizioni,
-        recupero: e.recupero_sec + "s"
-    }));
-    // raggruppa per ordine come proxy (non abbiamo il giorno nel programma)
-    const grouped = [{ giorno: programmaAllenamento.nome, items: esercizi }];
-    container.innerHTML = `
-        <div class="plan-card">
-            <div class="plan-card-head">
-                <h5>${programmaAllenamento.nome}</h5>
-                <div class="plan-tags">
-                    <span class="plan-tag">Programma allenamento</span>
-                </div>
+    const lista = programmiFiltrati();
+    if(lista.length === 0){
+        container.innerHTML = `<p class="prog-empty">Nessun programma corrisponde ai filtri selezionati.</p>`;
+        return;
+    }
+
+    container.innerHTML = lista.map(p => {
+        const esercizi = p.esercizi || [];
+        const statoClasse = STATO_CLASSE[p.stato] || "non-iniziato";
+        const inCorso = p.stato === "In corso";
+        const sessioneAttivaSuQuesto = sessioneAttiva && sessioneAttiva.idProgramma === p.id;
+        return `
+        <div class="prog-card" data-prog-id="${p.id}">
+            <div class="prog-card-head">
+                <h5>${p.nome}</h5>
+                <span class="prog-status ${statoClasse}">${p.stato}</span>
             </div>
-            <p class="plan-desc">${programmaAllenamento.descrizione || ""}</p>
-            ${esercizi.map((es, i) => `
-                <div class="plan-ex-row">
-                    <span class="ex-order">${i+1}</span>
-                    <div class="plan-ex-body">
-                        <strong>${es.nome}</strong>
-                        <span>${es.serie} serie × ${es.ripetizioni} · recupero ${es.recupero}</span>
+            <div class="plan-tags" style="margin-top:8px;">
+                <span class="plan-tag">${p.obiettivo}</span>
+                <span class="plan-tag">${p.livello_difficolta}</span>
+                <span class="plan-tag">${p.durata_settimane} settimane</span>
+            </div>
+            <p class="plan-desc">${p.descrizione || ""}</p>
+
+            <button type="button" class="prog-toggle-ex" data-toggle-ex="${p.id}">Mostra esercizi (${esercizi.length})</button>
+            <div class="prog-ex-list" id="prog-ex-${p.id}" hidden>
+                ${esercizi.map((ex, i) => `
+                    <div class="plan-ex-row">
+                        <span class="ex-order">${i+1}</span>
+                        <div class="plan-ex-body">
+                            <strong>${ex.nome || "Esercizio"}</strong>
+                            <span>${ex.gruppo_muscolare || ""} · ${ex.serie} serie × ${ex.ripetizioni} · recupero ${ex.recupero_sec}s</span>
+                        </div>
                     </div>
-                </div>
-            `).join("")}
+                `).join("")}
+            </div>
+
+            <div class="prog-card-actions">
+                ${inCorso
+            ? `<button type="button" class="btn btn-solid btn-small" data-avvia="${p.id}" ${sessioneAttiva ? "disabled style='opacity:.5;pointer-events:none;'" : ""}>
+                         ${sessioneAttivaSuQuesto ? "Sessione in corso…" : "Avvia sessione"}
+                       </button>`
+            : `<button type="button" class="btn btn-ghost btn-small" data-imposta="${p.id}">Imposta come "In corso"</button>`
+        }
+            </div>
         </div>
-    `;
+        `;
+    }).join("");
+
+    container.querySelectorAll("[data-toggle-ex]").forEach(btn => btn.addEventListener("click", () => {
+        const id = btn.dataset.toggleEx;
+        const el = document.getElementById(`prog-ex-${id}`);
+        el.hidden = !el.hidden;
+        btn.textContent = (el.hidden ? "Mostra" : "Nascondi") + " esercizi (" + el.querySelectorAll(".plan-ex-row").length + ")";
+    }));
+    container.querySelectorAll("[data-imposta]").forEach(btn => btn.addEventListener("click", () => impostaInCorso(Number(btn.dataset.imposta))));
+    container.querySelectorAll("[data-avvia]").forEach(btn => btn.addEventListener("click", () => avviaSessione(Number(btn.dataset.avvia))));
 }
+
+document.getElementById("filterObiettivo").addEventListener("change", e => { filtroObiettivo = e.target.value; renderProgrammi(); });
+document.getElementById("filterLivello").addEventListener("change", e => { filtroLivello = e.target.value; renderProgrammi(); });
+document.getElementById("filterDurata").addEventListener("change", e => { filtroDurata = e.target.value; renderProgrammi(); });
+
+async function impostaInCorso(idProgramma){
+    const r = await api(`/api/cliente/${utente.id}/programmi/${idProgramma}/stato`, {
+        method: "PATCH", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ stato: "In corso" })
+    });
+    if(!r.ok) return;
+    await caricaProgramma();
+    renderProgrammi();
+}
+
+/* ---------- TIMER SESSIONE LIVE ---------- */
+function avviaSessione(idProgramma){
+    if(sessioneAttiva) return; // una sessione alla volta
+    const programma = programmiAssegnati.find(p => p.id === idProgramma);
+    sessioneAttiva = { idProgramma, nomeProgramma: programma ? programma.nome : "—", startedAt: Date.now() };
+
+    document.getElementById("timerProgName").textContent = sessioneAttiva.nomeProgramma;
+    document.getElementById("timerBar").hidden = false;
+    aggiornaTimerClock();
+    timerInterval = setInterval(aggiornaTimerClock, 1000);
+    renderProgrammi();
+}
+
+function aggiornaTimerClock(){
+    if(!sessioneAttiva) return;
+    const secondi = Math.floor((Date.now() - sessioneAttiva.startedAt) / 1000);
+    const mm = String(Math.floor(secondi / 60)).padStart(2, "0");
+    const ss = String(secondi % 60).padStart(2, "0");
+    document.getElementById("timerClock").textContent = `${mm}:${ss}`;
+}
+
+const sessioneOverlay = document.getElementById("sessioneOverlay");
+let tempoMinutiPendente = 0;
+let idProgrammaPendente = null;
+
+document.getElementById("stopSessionBtn").addEventListener("click", () => {
+    if(!sessioneAttiva) return;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    const minuti = Math.max(1, Math.round((Date.now() - sessioneAttiva.startedAt) / 60000));
+    tempoMinutiPendente = minuti;
+    idProgrammaPendente = sessioneAttiva.idProgramma;
+
+    document.getElementById("timerBar").hidden = true;
+    document.getElementById("sessioneRecap").textContent =
+        `${sessioneAttiva.nomeProgramma} — ${minuti} minuti registrati. Hai completato l'allenamento?`;
+    sessioneOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+});
+
+async function registraSessione(completato){
+    sessioneOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+    const oggi = new Date().toISOString().slice(0, 10);
+
+    await api(`/api/cliente/${utente.id}/sessioni`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            data: oggi,
+            id_programma: idProgrammaPendente,
+            tempo_minuti: tempoMinutiPendente,
+            completato: completato ? 1 : 0
+        })
+    });
+
+    sessioneAttiva = null;
+    await caricaSessioni();
+    renderProgrammi();
+    renderStats();
+    renderSessioni();
+}
+
+document.getElementById("sessioneCompletata").addEventListener("click", () => registraSessione(true));
+document.getElementById("sessioneNonCompletata").addEventListener("click", () => registraSessione(false));
+document.getElementById("sessioneClose").addEventListener("click", () => { sessioneOverlay.classList.remove("open"); document.body.style.overflow = ""; });
+sessioneOverlay.addEventListener("click", (e) => { if(e.target === sessioneOverlay) { sessioneOverlay.classList.remove("open"); document.body.style.overflow = ""; } });
 
 /* =========================================================
    TAB: I MIEI PROGRESSI (sessioni dal backend)
@@ -438,6 +580,7 @@ function renderSessioni(){
     }
     const sorted = [...sessioni].sort((a, b) => new Date(b.data) - new Date(a.data));
     sorted.forEach(s => {
+        const programma = programmiAssegnati.find(p => p.id === s.id_programma);
         const div = document.createElement("div");
         div.className = "sessione-card";
         div.innerHTML = `
@@ -446,6 +589,7 @@ function renderSessioni(){
                 <span class="plan-tag">${s.completato ? "✓ Completata" : "Non completata"}</span>
             </div>
             <div class="record-grid" style="margin-top:8px;">
+                <div class="record-metric"><span class="metric-label">Programma</span><span class="metric-value">${programma ? programma.nome : "—"}</span></div>
                 <div class="record-metric"><span class="metric-label">Tempo</span><span class="metric-value">${s.tempo_minuti} min</span></div>
             </div>
         `;
@@ -459,7 +603,7 @@ function renderSessioni(){
 function renderAll(){
     renderRecords();
     renderPianoAlimentare();
-    renderProgramma();
+    renderProgrammi();
     renderStats();
     renderSessioni();
 }
