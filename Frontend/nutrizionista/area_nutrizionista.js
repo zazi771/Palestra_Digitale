@@ -66,12 +66,12 @@ async function init(){
 
     const cert = await api(`/api/nutrizionista/${utente.id}/certificazione`);
     if(cert.ok && cert.data.id){
-        document.getElementById("gate").style.hidden = true;
+        document.getElementById("gate").hidden = true;
         document.getElementById("dashboard").hidden = false;
         await caricaClienti();
         renderClients();
     } else {
-        document.getElementById("gate").style.hidden = false;
+        document.getElementById("gate").hidden = false;
         document.getElementById("dashboard").hidden = true;
     }
 }
