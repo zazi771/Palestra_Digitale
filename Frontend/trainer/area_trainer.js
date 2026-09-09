@@ -351,6 +351,7 @@ async function openViewModal(clientId){
         const div = document.createElement("div");
         div.className = "plan-card";
         const esercizi = p.esercizi || [];
+        const isMio = p.id_trainer === utente.id;
         div.innerHTML = `
             <div class="plan-card-head">
                 <h5>${p.nome}</h5>
@@ -361,10 +362,11 @@ async function openViewModal(clientId){
                 </div>
             </div>
             <p class="plan-desc">${p.descrizione || ""}</p>
+            ${isMio ? `
             <div class="row-actions plan-actions">
                 <button class="btn btn-ghost btn-small" data-edit="${p.id}">Modifica</button>
                 <button class="btn btn-ghost btn-small" data-del="${p.id}">Elimina</button>
-            </div>
+            </div>` : ''}
             ${esercizi.map(ex => `
                 <div class="plan-ex-row">
                     <span class="ex-order">${ex.ordine}</span>
@@ -376,15 +378,17 @@ async function openViewModal(clientId){
                 </div>
             `).join("")}
         `;
-        div.querySelector(`[data-edit="${p.id}"]`).addEventListener("click", () => { closeViewModal(); openPlanModal(clientId, p); });
-        div.querySelector(`[data-del="${p.id}"]`).addEventListener("click", async () => {
-            if(!confirm(`Eliminare il piano "${p.nome}"?`)) return;
-            const r = await api(`/api/trainer/${utente.id}/clienti/${clientId}/piani/${p.id}`, { method: 'DELETE' });
-            await caricaClienti();
-            renderClients();
-            if(r.ok) openViewModal(clientId);
-            else alert(r.data.errore || "Errore eliminazione piano.");
-        });
+        if(isMio){
+            div.querySelector(`[data-edit="${p.id}"]`).addEventListener("click", () => { closeViewModal(); openPlanModal(clientId, p); });
+            div.querySelector(`[data-del="${p.id}"]`).addEventListener("click", async () => {
+                if(!confirm(`Eliminare il piano "${p.nome}"?`)) return;
+                const r = await api(`/api/trainer/${utente.id}/clienti/${clientId}/piani/${p.id}`, { method: 'DELETE' });
+                await caricaClienti();
+                renderClients();
+                if(r.ok) openViewModal(clientId);
+                else alert(r.data.errore || "Errore eliminazione piano.");
+            });
+        }
         container.appendChild(div);
     });
 }

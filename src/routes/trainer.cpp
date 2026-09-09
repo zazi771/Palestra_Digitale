@@ -276,13 +276,18 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
                 return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
             }
 
-            // Verifica che il piano esista e appartenga davvero a questo trainer/cliente
-            bool esiste = false;
+            // Verifica che il piano esista per questo cliente e, se esiste, che appartenga a questo trainer
+            bool presente = false, diAltroTrainer = false;
             for (const auto& pr : db.getProgrammiByCliente(clienteId)) {
-                if (pr.getId() == pianoId && pr.getIdTrainer() == idTrainer) { esiste = true; break; }
+                if (pr.getId() != pianoId) continue;
+                presente = true;
+                if (pr.getIdTrainer() != idTrainer) diAltroTrainer = true;
+                break;
             }
 
-            if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+            if (!presente) return crow::response(404, R"({"errore":"Piano non trovato"})");
+            if (diAltroTrainer)
+                return crow::response(403, R"({"errore":"Errore: impossibile modificare questo piano perché è stato creato da un altro trainer"})");
 
             Programma_allenamento prog(pianoId, idTrainer, nome, obiettivo, livello, durata, descrizione);
             if (!db.aggiornaProgramma(prog)) return crow::response(500, R"({"errore":"Errore aggiornamento piano"})");
@@ -302,11 +307,16 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
     // DELETE /api/trainer/<id>/clienti/<clienteId>/piani/<pianoId>  -> elimina il piano del cliente
     CROW_ROUTE(app, "/api/trainer/<int>/clienti/<int>/piani/<int>").methods(crow::HTTPMethod::Delete)
     ([&db](int idTrainer, int clienteId, int pianoId) {
-        bool esiste = false;
+        bool presente = false, diAltroTrainer = false;
         for (const auto& pr : db.getProgrammiByCliente(clienteId)) {
-            if (pr.getId() == pianoId && pr.getIdTrainer() == idTrainer) { esiste = true; break; }
+            if (pr.getId() != pianoId) continue;
+            presente = true;
+            if (pr.getIdTrainer() != idTrainer) diAltroTrainer = true;
+            break;
         }
-        if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (!presente) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (diAltroTrainer)
+            return crow::response(403, R"({"errore":"Errore: impossibile eliminare questo piano perché è stato creato da un altro trainer"})");
         if (!db.eliminaProgramma(pianoId)) return crow::response(500, R"({"errore":"Errore eliminazione piano"})");
         return crow::response(200, R"({"esito":"ok"})");
     });

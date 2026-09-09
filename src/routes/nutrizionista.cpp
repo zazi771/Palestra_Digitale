@@ -266,12 +266,17 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
 
         if (nome.empty()) return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
 
-        // Verifica che il piano esista e appartenga davvero a questo nutrizionista/cliente
-        bool esiste = false;
+        // Verifica che il piano esista per questo cliente e, se esiste, che appartenga a questo nutrizionista
+        bool presente = false, diAltroNutrizionista = false;
         for (const auto& p : db.getPianiByCliente(clienteId)) {
-            if (p.getId() == pianoId && p.getIdNutrizionista() == idNutri) { esiste = true; break; }
+            if (p.getId() != pianoId) continue;
+            presente = true;
+            if (p.getIdNutrizionista() != idNutri) diAltroNutrizionista = true;
+            break;
         }
-        if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (!presente) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (diAltroNutrizionista)
+            return crow::response(403, R"({"errore":"Errore: impossibile modificare questo piano perché è stato creato da un altro nutrizionista"})");
 
         Piano_alimentare piano(pianoId, idNutri, nome, descrizione, clienteId);
         if (!db.aggiornaPianoAlimentare(piano)) return crow::response(500, R"({"errore":"Errore aggiornamento piano"})");
@@ -286,11 +291,16 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
     // DELETE /api/nutrizionista/<id>/clienti/<clienteId>/piani/<pianoId>  -> elimina il piano del cliente
     CROW_ROUTE(app, "/api/nutrizionista/<int>/clienti/<int>/piani/<int>").methods(crow::HTTPMethod::Delete)
     ([&db](int idNutri, int clienteId, int pianoId) {
-        bool esiste = false;
+        bool presente = false, diAltroNutrizionista = false;
         for (const auto& p : db.getPianiByCliente(clienteId)) {
-            if (p.getId() == pianoId && p.getIdNutrizionista() == idNutri) { esiste = true; break; }
+            if (p.getId() != pianoId) continue;
+            presente = true;
+            if (p.getIdNutrizionista() != idNutri) diAltroNutrizionista = true;
+            break;
         }
-        if (!esiste) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (!presente) return crow::response(404, R"({"errore":"Piano non trovato"})");
+        if (diAltroNutrizionista)
+            return crow::response(403, R"({"errore":"Errore: impossibile eliminare questo piano perché è stato creato da un altro nutrizionista"})");
         if (!db.eliminaPianoAlimentare(pianoId)) return crow::response(500, R"({"errore":"Errore eliminazione piano"})");
         return crow::response(200, R"({"esito":"ok"})");
     });
