@@ -10,6 +10,13 @@ let programmiAssegnati = [];   // TUTTI i programmi assegnati al cliente (con st
 let sessioni = [];
 let utenteCliente = null; // profilo dal backend
 
+/* ---------- BFCACHE: se ripristinato dalla cache dopo logout, torna alla home ---------- */
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted && !localStorage.getItem('utente')) {
+        window.location.href = '/';
+    }
+});
+
 /* ---------- STATO FILTRI ALLENAMENTO ---------- */
 let filtroObiettivo = "";
 let filtroLivello = "";

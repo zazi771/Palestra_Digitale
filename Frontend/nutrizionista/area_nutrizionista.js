@@ -2,6 +2,13 @@
    area_nutrizionista.js — Area Nutrizionista collegata al backend REST
    ========================================================= */
 
+/* ---------- BFCACHE: se ripristinato dalla cache dopo logout, torna alla home ---------- */
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted && !localStorage.getItem('utente')) {
+        window.location.href = '/';
+    }
+});
+
 let utente = null;
 let nutriProfile = null;
 let clients = [];
