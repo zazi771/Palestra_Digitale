@@ -75,20 +75,21 @@ void salvaPasti(Database& db, const crow::json::rvalue& listaPa, int idPiano) {
         std::string tipo = pa.has("tipo_pasto") ? std::string(pa["tipo_pasto"]) : "Pasto";
         int giornoNum = giornoToInt(giorno);
 
-        if (pa.has("alimenti") && pa["alimenti"].t() == crow::json::type::List) {
-            for (const auto& al : pa["alimenti"]) {
-                std::string ciboNome = al.has("cibo") ? std::string(al["cibo"]) : "";
-                int quantita = al.has("quantita_gr") ? (int)al["quantita_gr"] : 0;
-                if (ciboNome.empty()) continue;
+        // L'alimento è l'unità minima: senza alimenti non si crea alcun pasto.
+        if (!pa.has("alimenti") || pa["alimenti"].t() != crow::json::type::List) continue;
 
-                int idCibo = trovaOInserisciCibo(db, ciboNome);
+        // Crea un solo pasto per questo pasto della settimana (giorno + tipo).
+        Pasto pasto(0, idPiano, giornoNum, tipo);
+        int idPasto = db.inserisciPasto(pasto);
 
-                // Un pasto per alimento (per visualizzare nome + quantità)
-                Pasto pasto(0, idPiano, idCibo, giornoNum, tipo);
-                int idPasto = db.inserisciPasto(pasto);
-                Pasto_cibo pc(0, idPasto, idCibo, quantita);
-                db.inserisciPastoCibo(pc);
-            }
+        for (const auto& al : pa["alimenti"]) {
+            std::string ciboNome = al.has("cibo") ? std::string(al["cibo"]) : "";
+            int quantita = al.has("quantita_gr") ? (int)al["quantita_gr"] : 0;
+            if (ciboNome.empty()) continue;
+
+            int idCibo = trovaOInserisciCibo(db, ciboNome);
+            Pasto_cibo pc(0, idPasto, idCibo, quantita);
+            db.inserisciPastoCibo(pc);
         }
     }
 }

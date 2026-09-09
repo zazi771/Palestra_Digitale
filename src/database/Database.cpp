@@ -338,23 +338,22 @@ bool Database::eliminaPianoAlimentare(int id_piano) {
 std::vector<Pasto> Database::getPastiByPiano(int id_piano) {
     std::vector<Pasto> risultato;
     SQLite::Statement query(db,
-        "SELECT id_pasto, id_piano, id_cibo, giorno, tipo_pasto FROM Pasto WHERE id_piano = ?;");
+        "SELECT id_pasto, id_piano, giorno, tipo_pasto FROM Pasto WHERE id_piano = ?;");
     query.bind(1, id_piano);
     while (query.executeStep()) {
         risultato.push_back(Pasto(
-            (int)query.getColumn(0), (int)query.getColumn(1), (int)query.getColumn(2), (int)query.getColumn(3),
-            std::string(query.getColumn(4))));
+            (int)query.getColumn(0), (int)query.getColumn(1), (int)query.getColumn(2),
+            std::string(query.getColumn(3))));
     }
     return risultato;
 }
 
 int Database::inserisciPasto(const Pasto& p) {
     SQLite::Statement query(db,
-        "INSERT INTO Pasto (id_piano, id_cibo, giorno, tipo_pasto) VALUES (?, ?, ?, ?);");
+        "INSERT INTO Pasto (id_piano, giorno, tipo_pasto) VALUES (?, ?, ?);");
     query.bind(1, p.getIdPiano());
-    query.bind(2, p.getIdCibo());
-    query.bind(3, p.getGiorno());
-    query.bind(4, p.getTipoPasto());
+    query.bind(2, p.getGiorno());
+    query.bind(3, p.getTipoPasto());
     query.exec();
     return (int)db.getLastInsertRowid();
 }

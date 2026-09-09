@@ -13,17 +13,15 @@ protected:
     //Parametri
     int id_pasto; //PK
     int id_piano; //FK
-    int id_cibo; //FK
     int giorno;
     string tipo_pasto;
 
 public:
     //Costruttore
-    Pasto(int id_pasto, int id_piano, int id_cibo, int giorno, string tipo_pasto);
+    Pasto(int id_pasto, int id_piano, int giorno, string tipo_pasto);
 
     int getId() const;
     int getIdPiano() const;
-    int getIdCibo() const;
     int getGiorno() const;
     string getTipoPasto() const;
 };
