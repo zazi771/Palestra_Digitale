@@ -9,6 +9,7 @@ let pianoAlimentare = null;  // primo piano alimentare del cliente
 let programmiAssegnati = [];   // TUTTI i programmi assegnati al cliente (con stato/data_inizio)
 let sessioni = [];
 let utenteCliente = null; // profilo dal backend
+let mieiFeedback = []; // feedback lasciati dal cliente
 
 /* ---------- BFCACHE: se ripristinato dalla cache dopo logout, torna alla home ---------- */
 window.addEventListener('pageshow', (event) => {
@@ -77,15 +78,10 @@ async function init(){
     utenteCliente = r.data;
 
     // aggiorna chip header
-    const chip = document.getElementById("clientChip");
-    const chipText = document.getElementById("clientChipText");
+    const chip = document.getElementById("clientChip1");
+    const chipText = document.getElementById("clientChipText1");
     chipText.textContent = `${utenteCliente.nome} ${utenteCliente.cognome} · Cliente`;
     chip.hidden = false;
-
-    const chip1 = document.getElementById("clientChip1");
-    const chipText1 = document.getElementById("clientChipText1");
-    chipText1.textContent = `${utenteCliente.nome} ${utenteCliente.cognome} · Cliente`;
-    chip1.hidden = false;
 
     const logoutBtn = document.getElementById("logoutBtn");
     logoutBtn.hidden = false;
@@ -97,7 +93,7 @@ async function init(){
     }
 
     // carica tutti i dati
-    await Promise.all([caricaCartella(), caricaPianoAlimentare(), caricaProgramma(), caricaSessioni()]);
+    await Promise.all([caricaCartella(), caricaPianoAlimentare(), caricaProgramma(), caricaSessioni(), caricaFeedback()]);
 
     // se non ha cartella clinica, mostra gate
     if(clinicalRecords.length === 0){
@@ -134,6 +130,12 @@ async function caricaSessioni(){
     const r = await api(`/api/cliente/${utente.id}/sessioni`);
     if(!r.ok) return;
     sessioni = r.data.sessioni || [];
+}
+
+async function caricaFeedback(){
+    const r = await api(`/api/cliente/${utente.id}/feedback`);
+    if(!r.ok) return;
+    mieiFeedback = r.data.feedback || [];
 }
 
 /* =========================================================
@@ -342,6 +344,7 @@ function renderPianoAlimentare(){
         return;
     }
     const pasti = pianoAlimentare.pasti || [];
+    const feedbackPiano = mieiFeedback.filter(f => f.id_piano === pianoAlimentare.id);
     // i pasti hanno: giorno (1-7), tipo_pasto, alimenti [{cibo, quantita_gr}]
     const pastiRender = pasti.map(p => ({
         giorno: giornoDaNumero(p.giorno),
@@ -371,8 +374,16 @@ function renderPianoAlimentare(){
                     `).join("")}
                 </div>
             `).join("")}
+            <div class="feedback-section">
+                <div class="feedback-section-head">
+                    <h4 class="feedback-section-title">Feedback</h4>
+                    <button type="button" class="btn btn-ghost btn-small" onclick="openFeedbackModal('piano', ${pianoAlimentare.id}, '${pianoAlimentare.nome.replace(/'/g, "\\'")}')">Lascia Feedback</button>
+                </div>
+                <div id="feedback-list-piano"></div>
+            </div>
         </div>
     `;
+    renderFeedbackList(feedbackPiano, "feedback-list-piano");
 }
 
 /* =========================================================
@@ -419,6 +430,7 @@ function renderProgrammi(){
         const statoClasse = STATO_CLASSE[p.stato] || "non-iniziato";
         const inCorso = p.stato === "In corso";
         const sessioneAttivaSuQuesto = sessioneAttiva && sessioneAttiva.idProgramma === p.id;
+        const feedbackProg = mieiFeedback.filter(f => f.id_programma === p.id);
         return `
         <div class="prog-card" data-prog-id="${p.id}">
             <div class="prog-card-head">
@@ -453,6 +465,14 @@ function renderProgrammi(){
             : `<button type="button" class="btn btn-ghost btn-small" data-imposta="${p.id}">Imposta come "In corso"</button>`
         }
             </div>
+
+            <div class="feedback-section">
+                <div class="feedback-section-head">
+                    <h4 class="feedback-section-title">Feedback</h4>
+                    <button type="button" class="btn btn-ghost btn-small" onclick="openFeedbackModal('programma', ${p.id}, '${p.nome.replace(/'/g, "\\'")}')">Lascia Feedback</button>
+                </div>
+                <div id="feedback-list-prog-${p.id}"></div>
+            </div>
         </div>
         `;
     }).join("");
@@ -465,6 +485,12 @@ function renderProgrammi(){
     }));
     container.querySelectorAll("[data-imposta]").forEach(btn => btn.addEventListener("click", () => impostaInCorso(Number(btn.dataset.imposta))));
     container.querySelectorAll("[data-avvia]").forEach(btn => btn.addEventListener("click", () => avviaSessione(Number(btn.dataset.avvia))));
+
+    // Render feedback per ogni programma
+    lista.forEach(p => {
+        const feedbackProg = mieiFeedback.filter(f => f.id_programma === p.id);
+        renderFeedbackList(feedbackProg, `feedback-list-prog-${p.id}`);
+    });
 }
 
 document.getElementById("filterObiettivo").addEventListener("change", e => { filtroObiettivo = e.target.value; renderProgrammi(); });
@@ -549,6 +575,108 @@ document.getElementById("sessioneClose").addEventListener("click", () => { sessi
 sessioneOverlay.addEventListener("click", (e) => { if(e.target === sessioneOverlay) { sessioneOverlay.classList.remove("open"); document.body.style.overflow = ""; } });
 
 /* =========================================================
+   MODAL: FEEDBACK
+   ========================================================= */
+const feedbackOverlay = document.getElementById("feedbackOverlay");
+let feedbackTarget = null; // { tipo: "programma"|"piano", id: number }
+
+document.querySelectorAll("[data-star]").forEach(star => {
+    star.addEventListener("click", () => {
+        const val = parseInt(star.dataset.star);
+        document.getElementById("feedbackValutazione").value = val;
+        document.querySelectorAll("[data-star]").forEach(s => {
+            s.classList.toggle("active", parseInt(s.dataset.star) <= val);
+        });
+    });
+    star.addEventListener("mouseenter", () => {
+        const val = parseInt(star.dataset.star);
+        document.querySelectorAll("[data-star]").forEach(s => {
+            s.classList.toggle("hover", parseInt(s.dataset.star) <= val);
+        });
+    });
+    star.addEventListener("mouseleave", () => {
+        document.querySelectorAll("[data-star]").forEach(s => s.classList.remove("hover"));
+    });
+});
+
+function openFeedbackModal(tipo, id, nomePiano) {
+    feedbackTarget = { tipo, id };
+    document.getElementById("feedbackTitle").textContent = `Come valuti "${nomePiano}"?`;
+    document.getElementById("feedbackValutazione").value = 0;
+    document.getElementById("feedbackCommento").value = "";
+    document.getElementById("feedbackError").hidden = true;
+    document.querySelectorAll("[data-star]").forEach(s => { s.classList.remove("active"); s.classList.remove("hover"); });
+    feedbackOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+}
+
+function closeFeedbackModal() {
+    feedbackOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+    feedbackTarget = null;
+}
+
+document.getElementById("feedbackClose").addEventListener("click", closeFeedbackModal);
+feedbackOverlay.addEventListener("click", (e) => { if(e.target === feedbackOverlay) closeFeedbackModal(); });
+
+document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const valutazione = parseInt(document.getElementById("feedbackValutazione").value);
+    if (valutazione < 1 || valutazione > 5) {
+        document.getElementById("feedbackError").hidden = false;
+        return;
+    }
+    const commento = document.getElementById("feedbackCommento").value.trim();
+    const body = { valutazione, commento };
+    if (feedbackTarget.tipo === "programma") body.id_programma = feedbackTarget.id;
+    else body.id_piano = feedbackTarget.id;
+
+    const r = await api(`/api/cliente/${utente.id}/feedback`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body)
+    });
+    if (!r.ok) return;
+    closeFeedbackModal();
+    await caricaFeedback();
+    renderPianoAlimentare();
+    renderProgrammi();
+});
+
+async function eliminaFeedback(fid) {
+    if (!confirm("Eliminare questo feedback?")) return;
+    const r = await api(`/api/cliente/${utente.id}/feedback/${fid}`, { method: "DELETE" });
+    if (!r.ok) return;
+    await caricaFeedback();
+    renderPianoAlimentare();
+    renderProgrammi();
+}
+
+function renderFeedbackList(feedbackList, containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!feedbackList || feedbackList.length === 0) {
+        el.innerHTML = "";
+        return;
+    }
+    el.innerHTML = feedbackList.map(fb => {
+        const stelle = "★".repeat(fb.valutazione) + "☆".repeat(5 - fb.valutazione);
+        return `
+            <div class="feedback-item">
+                <div class="feedback-head">
+                    <span class="feedback-stars">${stelle}</span>
+                    <span class="feedback-date">${formatDate(fb.data)}</span>
+                    <button type="button" class="feedback-delete" data-del-fb="${fb.id}" title="Elimina feedback">✕</button>
+                </div>
+                ${fb.commento ? `<p class="feedback-commento">${fb.commento}</p>` : ""}
+            </div>
+        `;
+    }).join("");
+    el.querySelectorAll("[data-del-fb]").forEach(btn => {
+        btn.addEventListener("click", () => eliminaFeedback(Number(btn.dataset.delFb)));
+    });
+}
+
+/* =========================================================
    TAB: I MIEI PROGRESSI (sessioni dal backend)
    ========================================================= */
 function renderStats(){
@@ -616,5 +744,5 @@ function renderAll(){
 }
 
 document.addEventListener("keydown", (e) => {
-    if(e.key === "Escape") closeRecordModal();
+    if(e.key === "Escape"){ closeRecordModal(); closeFeedbackModal(); }
 });

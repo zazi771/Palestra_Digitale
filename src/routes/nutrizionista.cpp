@@ -327,4 +327,28 @@ void registraNutrizionistaRoutes(crow::SimpleApp& app, Database& db, const std::
         return crow::response(200, w);
     });
 
+    // GET /api/nutrizionista/<id>/clienti/<clienteId>/piani/<pianoId>/feedback  -> feedback di un piano alimentare
+    CROW_ROUTE(app, "/api/nutrizionista/<int>/clienti/<int>/piani/<int>/feedback")
+    ([&db](int /*idNutri*/, int clienteId, int pianoId) {
+        auto feedbacks = db.getFeedbackByPiano(pianoId);
+        crow::json::wvalue w;
+        std::vector<crow::json::wvalue> arr;
+        for (const auto& fb : feedbacks) {
+            crow::json::wvalue fj;
+            fj["id"] = fb.getIdFeedback();
+            fj["valutazione"] = fb.getValutazione();
+            fj["commento"] = fb.getCommento();
+            fj["data"] = fb.getDataStr();
+            try {
+                Utente u = db.getUtenteById(fb.getIdUtente());
+                fj["nome_cliente"] = u.getNome() + " " + u.getCognome();
+            } catch (...) {
+                fj["nome_cliente"] = "Cliente";
+            }
+            arr.push_back(std::move(fj));
+        }
+        w["feedback"] = std::move(arr);
+        return crow::response(200, w);
+    });
+
 }

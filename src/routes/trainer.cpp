@@ -408,4 +408,28 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
         return crow::response(200, w);
     });
 
+    // GET /api/trainer/<id>/clienti/<clienteId>/piani/<pianoId>/feedback  -> feedback di un programma
+    CROW_ROUTE(app, "/api/trainer/<int>/clienti/<int>/piani/<int>/feedback")
+    ([&db](int /*idTrainer*/, int clienteId, int pianoId) {
+        auto feedbacks = db.getFeedbackByProgramma(pianoId);
+        crow::json::wvalue w;
+        std::vector<crow::json::wvalue> arr;
+        for (const auto& fb : feedbacks) {
+            crow::json::wvalue fj;
+            fj["id"] = fb.getIdFeedback();
+            fj["valutazione"] = fb.getValutazione();
+            fj["commento"] = fb.getCommento();
+            fj["data"] = fb.getDataStr();
+            try {
+                Utente u = db.getUtenteById(fb.getIdUtente());
+                fj["nome_cliente"] = u.getNome() + " " + u.getCognome();
+            } catch (...) {
+                fj["nome_cliente"] = "Cliente";
+            }
+            arr.push_back(std::move(fj));
+        }
+        w["feedback"] = std::move(arr);
+        return crow::response(200, w);
+    });
+
 }

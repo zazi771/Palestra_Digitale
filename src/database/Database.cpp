@@ -1,6 +1,3 @@
-//
-// Created by giorg on 01/09/2026.
-//
 
 #include "Database.h"
 #include <sstream>
@@ -11,10 +8,9 @@ Database::Database(const std::string& percorsoFile)
     db.exec("PRAGMA foreign_keys = ON;");
 }
 
-// =====================================================================
+//
 // UTENTE
-// =====================================================================
-
+//
 namespace {
 // Converte date (anno-mese-giorno) in stringa ISO "YYYY-MM-DD"
 date parseDate(const std::string& s) {
@@ -109,9 +105,9 @@ bool Database::eliminaUtente(int id) {
     return query.exec() > 0;
 }
 
-// =====================================================================
+//
 // CARTELLA CLINICA
-// =====================================================================
+//
 std::vector<Cartella_clinica> Database::getCartelleByCliente(int id_cliente) {
     std::vector<Cartella_clinica> risultato;
     SQLite::Statement query(db,
@@ -157,9 +153,9 @@ bool Database::inserisciCartella(const Cartella_clinica& c) {
     return query.exec() > 0;
 }
 
-// =====================================================================
+//
 // CERTIFICAZIONE
-// =====================================================================
+//
 std::optional<Certificazione> Database::getCertificazioneByEsperto(int id_esperto) {
     SQLite::Statement query(db,
         "SELECT id_certificazione, id_esperto, cv, certificazione, ente_rilascio, "
@@ -187,9 +183,9 @@ bool Database::inserisciCertificazione(const Certificazione& c) {
     return query.exec() > 0;
 }
 
-// =====================================================================
+//
 // CIBO
-// =====================================================================
+//
 std::vector<Cibo> Database::getTuttiCibi() {
     std::vector<Cibo> risultato;
     SQLite::Statement query(db, "SELECT id_cibo, nome, kcal, carboidrati, proteine, grassi FROM Cibo;");
@@ -226,9 +222,9 @@ int Database::inserisciCibo(const Cibo& c) {
     return (int)db.getLastInsertRowid();
 }
 
-// =====================================================================
+//
 // ESERCIZIO
-// =====================================================================
+//
 std::vector<Esercizio> Database::getTuttiEsercizi() {
     std::vector<Esercizio> risultato;
     SQLite::Statement query(db,
@@ -252,9 +248,9 @@ int Database::inserisciEsercizio(const Esercizio& e) {
     return (int)db.getLastInsertRowid();
 }
 
-// =====================================================================
+//
 // PIANO ALIMENTARE (+ pasti + alimenti)
-// =====================================================================
+//
 std::vector<Piano_alimentare> Database::getPianiByCliente(int id_cliente) {
     std::vector<Piano_alimentare> risultato;
     SQLite::Statement query(db,
@@ -556,4 +552,59 @@ int Database::inserisciSessione(const Sessione& s) {
     query.bind(5, s.getCompletato());
     query.exec();
     return (int)db.getLastInsertRowid();
+}
+
+// =====================================================================
+// FEEDBACK
+// =====================================================================
+int Database::inserisciFeedback(const Feedback& f) {
+    SQLite::Statement query(db,
+        "INSERT INTO Feedback (valutazione, commento, data, id_utente, id_programma, id_piano) VALUES (?, ?, ?, ?, ?, ?);");
+    query.bind(1, f.getValutazione());
+    query.bind(2, f.getCommento());
+    query.bind(3, f.getDataStr());
+    query.bind(4, f.getIdUtente());
+    if (f.getIdProgramma() > 0) query.bind(5, f.getIdProgramma()); else query.bind(5);
+    if (f.getIdPiano() > 0) query.bind(6, f.getIdPiano()); else query.bind(6);
+    query.exec();
+    return (int)db.getLastInsertRowid();
+}
+
+std::vector<Feedback> Database::getFeedbackByPiano(int id_piano) {
+    std::vector<Feedback> risultato;
+    SQLite::Statement query(db,
+        "SELECT id_feedback, valutazione, commento, data, id_utente, id_programma, id_piano "
+        "FROM Feedback WHERE id_piano = ? ORDER BY data DESC;");
+    query.bind(1, id_piano);
+    while (query.executeStep()) {
+        risultato.push_back(Feedback(
+            (int)query.getColumn(0), (int)query.getColumn(1), std::string(query.getColumn(2)),
+            parseDate(std::string(query.getColumn(3))), (int)query.getColumn(4),
+            query.getColumn(5).isNull() ? 0 : (int)query.getColumn(5),
+            query.getColumn(6).isNull() ? 0 : (int)query.getColumn(6)));
+    }
+    return risultato;
+}
+
+std::vector<Feedback> Database::getFeedbackByProgramma(int id_programma) {
+    std::vector<Feedback> risultato;
+    SQLite::Statement query(db,
+        "SELECT id_feedback, valutazione, commento, data, id_utente, id_programma, id_piano "
+        "FROM Feedback WHERE id_programma = ? ORDER BY data DESC;");
+    query.bind(1, id_programma);
+    while (query.executeStep()) {
+        risultato.push_back(Feedback(
+            (int)query.getColumn(0), (int)query.getColumn(1), std::string(query.getColumn(2)),
+            parseDate(std::string(query.getColumn(3))), (int)query.getColumn(4),
+            query.getColumn(5).isNull() ? 0 : (int)query.getColumn(5),
+            query.getColumn(6).isNull() ? 0 : (int)query.getColumn(6)));
+    }
+    return risultato;
+}
+
+bool Database::eliminaFeedback(int id_feedback, int id_utente) {
+    SQLite::Statement query(db, "DELETE FROM Feedback WHERE id_feedback = ? AND id_utente = ?;");
+    query.bind(1, id_feedback);
+    query.bind(2, id_utente);
+    return query.exec() > 0;
 }

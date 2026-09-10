@@ -293,4 +293,88 @@ void registraClienteRoutes(crow::SimpleApp& app, Database& db) {
         }
         return crow::response(200, R"({"esito":"ok"})");
     });
+
+    // POST /api/cliente/<id>/feedback  -> invia un feedback
+    CROW_ROUTE(app, "/api/cliente/<int>/feedback").methods(crow::HTTPMethod::POST)
+    ([&db](const crow::request& req, int id) {
+        try {
+            auto body = crow::json::load(req.body);
+            if (!body) return crow::response(400, R"({"errore":"Body JSON non valido"})");
+
+            int valutazione = body.has("valutazione") ? (int)body["valutazione"] : 0;
+            std::string commento = body.has("commento") ? std::string(body["commento"]) : "";
+            int idProgramma = body.has("id_programma") ? (int)body["id_programma"] : 0;
+            int idPiano = body.has("id_piano") ? (int)body["id_piano"] : 0;
+
+            if (valutazione < 1 || valutazione > 5) {
+                return crow::response(400, R"({"errore":"Valutazione deve essere tra 1 e 5"})");
+            }
+            if (idProgramma == 0 && idPiano == 0) {
+                return crow::response(400, R"({"errore":"Specificare id_programma o id_piano"})");
+            }
+
+            date today = std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now());
+
+            Feedback f(0, valutazione, commento, today, id, idProgramma, idPiano);
+            int nuovoId = db.inserisciFeedback(f);
+            if (nuovoId <= 0) return crow::response(500, R"({"errore":"Errore durante il salvataggio"})");
+
+            crow::json::wvalue w;
+            w["id"] = nuovoId;
+            return crow::response(201, w);
+        } catch (const std::exception& e) {
+            return crow::response(500, std::string(R"({"errore":")") + e.what() + R"("})");
+        } catch (...) {
+            return crow::response(500, R"({"errore":"Errore sconosciuto"})");
+        }
+    });
+
+    // GET /api/cliente/<id>/feedback  -> tutti i feedback del cliente
+    CROW_ROUTE(app, "/api/cliente/<int>/feedback")
+    ([&db](int id) {
+        auto programmi = db.getProgrammiByCliente(id);
+        auto piani = db.getPianiByCliente(id);
+        crow::json::wvalue w;
+        std::vector<crow::json::wvalue> arr;
+
+        for (const auto& pr : programmi) {
+            auto feedbacks = db.getFeedbackByProgramma(pr.getId());
+            for (const auto& fb : feedbacks) {
+                if (fb.getIdUtente() != id) continue;
+                crow::json::wvalue fj;
+                fj["id"] = fb.getIdFeedback();
+                fj["valutazione"] = fb.getValutazione();
+                fj["commento"] = fb.getCommento();
+                fj["data"] = fb.getDataStr();
+                fj["id_programma"] = fb.getIdProgramma();
+                fj["id_piano"] = fb.getIdPiano();
+                arr.push_back(std::move(fj));
+            }
+        }
+        for (const auto& p : piani) {
+            auto feedbacks = db.getFeedbackByPiano(p.getId());
+            for (const auto& fb : feedbacks) {
+                if (fb.getIdUtente() != id) continue;
+                crow::json::wvalue fj;
+                fj["id"] = fb.getIdFeedback();
+                fj["valutazione"] = fb.getValutazione();
+                fj["commento"] = fb.getCommento();
+                fj["data"] = fb.getDataStr();
+                fj["id_programma"] = fb.getIdProgramma();
+                fj["id_piano"] = fb.getIdPiano();
+                arr.push_back(std::move(fj));
+            }
+        }
+        w["feedback"] = std::move(arr);
+        return crow::response(200, w);
+    });
+
+    // DELETE /api/cliente/<id>/feedback/<fid>  -> elimina un feedback proprio
+    CROW_ROUTE(app, "/api/cliente/<int>/feedback/<int>").methods(crow::HTTPMethod::Delete)
+    ([&db](int id, int fid) {
+        if (db.eliminaFeedback(fid, id)) {
+            return crow::response(200, R"({"esito":"ok"})");
+        }
+        return crow::response(404, R"({"errore":"Feedback non trovato o non autorizzato"})");
+    });
 }

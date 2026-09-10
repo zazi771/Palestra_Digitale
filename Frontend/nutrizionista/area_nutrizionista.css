@@ -421,3 +421,100 @@
 .plan-empty{
     color:var(--muted);font-size:14px;padding:30px 0;text-align:center;
 }
+
+/* ===================== FEEDBACK ===================== */
+.feedback-section{
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+}
+.feedback-section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+}
+.feedback-section-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:18px;
+    font-weight:400;
+    letter-spacing:0.02em;
+    color:var(--paper);
+}
+.feedback-item{
+    background:var(--ink-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:10px;
+}
+.feedback-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.feedback-cliente{
+    font-weight:700;
+    font-size:13px;
+    color:var(--paper);
+}
+.feedback-stars{
+    color:var(--coral);
+    font-size:14px;
+    letter-spacing:2px;
+}
+.feedback-date{
+    font-size:11px;
+    color:var(--muted);
+    margin-left:auto;
+}
+.feedback-commento{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.5;
+    margin-top:8px;
+}
+.feedback-delete{
+    width:24px;
+    height:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--muted);
+    font-size:11px;
+    flex-shrink:0;
+    transition:border-color .15s ease, color .15s ease;
+}
+.feedback-delete:hover{
+    border-color:var(--coral);
+    color:var(--coral);
+}
+
+/* Feedback modal - star rating */
+.feedback-rating{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    margin-top:8px;
+}
+.feedback-rating .star{
+    font-size:32px;
+    color:var(--line);
+    cursor:pointer;
+    transition:color .15s ease, transform .15s ease;
+    user-select:none;
+}
+.feedback-rating .star.active{
+    color:var(--coral);
+}
+.feedback-rating .star.hover{
+    color:var(--coral);
+    transform:scale(1.15);
+}
+.feedback-rating .star:hover{
+    color:var(--coral);
+}

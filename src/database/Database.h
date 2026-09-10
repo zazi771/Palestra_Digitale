@@ -1,6 +1,3 @@
-//
-// Created by giorg on 01/09/2026.
-//
 
 #ifndef PALESTRADIGITALE_DATABASE_H
 #define PALESTRADIGITALE_DATABASE_H
@@ -22,8 +19,8 @@
 #include "models/Sessione.h"
 #include "models/Utente_programma.h"
 
-// Riga leggera di join Utente<->Programma (stato + data_inizio dell'assegnazione).
-// Non e' un model completo: serve solo ad arricchire le risposte REST lato cliente.
+// Join Utente<->Programma (stato + data_inizio dell'assegnazione).
+// Per risposte REST lato cliente.
 struct AssegnazioneProgramma {
     int id_assegnazione;
     int id_utente;
@@ -97,9 +94,17 @@ public:
     std::vector<AssegnazioneProgramma> getAssegnazioniByCliente(int id_cliente);
     bool aggiornaStatoAssegnazione(int id_utente, int id_programma, const std::string& nuovo_stato);
     //
-    //Sessione
+
+    //SESSIONE
     std::vector<Sessione> getSessioniByCliente(int id_cliente);
     int inserisciSessione(const Sessione& s);
+    //
+
+    //FEEDBACK
+    int inserisciFeedback(const Feedback& f);
+    std::vector<Feedback> getFeedbackByPiano(int id_piano);
+    std::vector<Feedback> getFeedbackByProgramma(int id_programma);
+    bool eliminaFeedback(int id_feedback, int id_utente);
     //
 
 };

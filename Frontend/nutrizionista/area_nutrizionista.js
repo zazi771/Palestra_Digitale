@@ -346,6 +346,32 @@ planForm.addEventListener("submit", async (e) => {
    ========================================================= */
 const viewOverlay = document.getElementById("viewOverlay");
 
+function renderStars(valutazione) {
+    return "★".repeat(valutazione) + "☆".repeat(5 - valutazione);
+}
+
+async function caricaFeedbackPiano(clientId, pianoId, containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const r = await api(`/api/nutrizionista/${utente.id}/clienti/${clientId}/piani/${pianoId}/feedback`);
+    if (!r.ok) { el.innerHTML = `<p class="plan-empty" style="padding:10px 0;">Impossibile caricare i feedback.</p>`; return; }
+    const feedbacks = r.data.feedback || [];
+    if (feedbacks.length === 0) {
+        el.innerHTML = `<p class="plan-empty" style="padding:10px 0;">Nessun feedback ancora.</p>`;
+        return;
+    }
+    el.innerHTML = feedbacks.map(fb => `
+        <div class="feedback-item">
+            <div class="feedback-head">
+                <span class="feedback-cliente">${fb.nome_cliente}</span>
+                <span class="feedback-stars">${renderStars(fb.valutazione)}</span>
+                <span class="feedback-date">${formatDate(fb.data)}</span>
+            </div>
+            ${fb.commento ? `<p class="feedback-commento">${fb.commento}</p>` : ""}
+        </div>
+    `).join("");
+}
+
 async function openViewModal(clientId){
     const client = getClient(clientId);
     document.getElementById("viewClientName").textContent = client ? `${client.nome} ${client.cognome}` : "—";
@@ -387,6 +413,10 @@ async function openViewModal(clientId){
                     </div>
                 </div>
             `).join("")}
+            <div class="feedback-section">
+                <h4 class="feedback-section-title">Feedback dei clienti</h4>
+                <div id="feedback-nutri-${p.id}"><p class="plan-empty" style="padding:10px 0;">Caricamento feedback...</p></div>
+            </div>
         `;
         if(isMio){
             div.querySelector(`[data-edit="${p.id}"]`).addEventListener("click", () => { closeViewModal(); openPlanModal(clientId, p); });
@@ -400,6 +430,9 @@ async function openViewModal(clientId){
             });
         }
         container.appendChild(div);
+
+        // Carica feedback per questo piano
+        caricaFeedbackPiano(clientId, p.id, `feedback-nutri-${p.id}`);
     });
 }
 document.getElementById("viewClose").addEventListener("click", closeViewModal);
