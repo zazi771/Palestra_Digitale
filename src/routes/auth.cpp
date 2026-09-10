@@ -3,6 +3,7 @@
 //
 
 #include "auth.h"
+#include "bcrypt_wrapper.h"
 #include <sstream>
 
 namespace {
@@ -69,8 +70,11 @@ void registraAuthRoutes(crow::SimpleApp& app, Database& db) {
             << (tm.tm_mon + 1 < 10 ? "0" : "") << (tm.tm_mon + 1) << "-"
             << (tm.tm_mday < 10 ? "0" : "") << tm.tm_mday;
 
-        Utente nuovo(email, password, nome, cognome, ruolo, parseDateISO(oss.str()), sesso,
+        std::string passwordHash = bcrypt::generateHash(password);
+
+        Utente nuovo(email, passwordHash, nome, cognome, ruolo, parseDateISO(oss.str()), sesso,
                      parseDateISO(dataNascita));
+
         if (!db.inserisciUtente(nuovo)) {
             return crow::response(500, R"({"errore":"Errore durante la registrazione"})");
         }
@@ -94,7 +98,7 @@ void registraAuthRoutes(crow::SimpleApp& app, Database& db) {
         std::string password = body.has("password") ? std::string(body["password"]) : "";
 
         auto utente = db.getUtenteByEmail(email);
-        if (!utente || utente->getPasswordHash() != password) {
+        if (!utente || !bcrypt::validatePassword(password, utente->getPasswordHash())) {
             return crow::response(401, R"({"errore":"Credenziali non valide"})");
         }
 

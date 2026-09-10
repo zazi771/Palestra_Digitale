@@ -10,7 +10,13 @@ if (MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 endif()
 
+if (WIN32)
+    add_compile_definitions(_WIN32_WINNT=0x0601 WINVER=0x0601 ASIO_DISABLE_IOCP)
+endif()
+
 add_subdirectory(libs/SQLiteCpp)
+
+add_subdirectory(libs/bcrypt)
 
 # ---------------------------------------------------------------------------
 # Crow (HTTP micro-framework) — header-only
@@ -71,7 +77,7 @@ add_executable(PALESTRA_DIGITALE
 
 target_include_directories(PALESTRA_DIGITALE PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-target_link_libraries(PALESTRA_DIGITALE PRIVATE SQLiteCpp Crow::Crow)
+target_link_libraries(PALESTRA_DIGITALE PRIVATE SQLiteCpp Crow::Crow bcrypt)
 
 if (WIN32)
     target_link_libraries(PALESTRA_DIGITALE PRIVATE ws2_32 mswsock)
