@@ -428,9 +428,9 @@ bool Database::eliminaProgramma(int id_programma) {
         delFeedback.bind(1, id_programma);
         delFeedback.exec();
 
-        /*SQLite::Statement delSessioni(db, "DELETE FROM Sessione WHERE id_programma = ?;");
+        SQLite::Statement delSessioni(db, "DELETE FROM Sessione WHERE id_programma = ?;");
         delSessioni.bind(1, id_programma);
-        delSessioni.exec();*/
+        delSessioni.exec();
 
         SQLite::Statement delEsercizi(db, "DELETE FROM Programma_esercizio WHERE id_programma = ?;");
         delEsercizi.bind(1, id_programma);
