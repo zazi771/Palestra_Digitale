@@ -27,6 +27,7 @@ public:
     Certificazione(int id_certificazione, int id_esperto, string cv, string certificazione,
         string ente_rilascio, int codice_certificazione, date data_rilascio, date data_scadenza);
 
+    //Metodi
     int getId() const;
     int getIdEsperto() const;
     string getCv() const;

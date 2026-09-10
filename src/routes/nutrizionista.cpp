@@ -1,6 +1,3 @@
-//
-// Created by giorg on 04/09/2026.
-//
 
 #include "nutrizionista.h"
 #include "uploads.h"
@@ -10,6 +7,7 @@
 
 namespace  {
 
+// Converte "YYYY-MM-DD" in date (year_month_day)
 date parseDateISO(const std::string& s) {
     std::istringstream iss(s);
     int y, m, d;
@@ -22,7 +20,7 @@ date parseDateISO(const std::string& s) {
 }
 
 int giornoToInt(const std::string& g) {
-    // Riceviamo "Lunedì", "Martedì", ... e restituiamo 1..7. Default: 1.
+    // Riceve "Lunedì", "Martedì", ... e restituisce 1..7.
     std::string g1 = g;
     for (auto& c : g1) c = (char)std::tolower((unsigned char)c);
     if (g1.find("luned") != std::string::npos) return 1;
@@ -46,7 +44,7 @@ crow::json::wvalue utenteSintesi(const Utente& u, int nPiani) {
     return w;
 }
 
-// Costruisce una mappa id Cibo -> Cibo per arricchire i pasti con il nome.
+// Costruisce una mappa id Cibo -> Cibo per popolare i pasti con il nome.
 std::unordered_map<int, Cibo> mappaCibi(Database& db) {
     std::unordered_map<int, Cibo> m;
     for (const auto& c : db.getTuttiCibi()) m.emplace(c.getId(), c);
@@ -67,7 +65,7 @@ int trovaOInserisciCibo(Database& db, const std::string& nome) {
     return db.inserisciCibo(nuovo);
 }
 
-// Inserisce i pasti (con i relativi alimenti) ricevuti dal client per un piano.
+// Inserisce i pasti (con i relativi alimenti) in un piano.
 void salvaPasti(Database& db, const crow::json::rvalue& listaPa, int idPiano) {
     if (listaPa.t() != crow::json::type::List) return;
     for (const auto& pa : listaPa) {
@@ -78,7 +76,7 @@ void salvaPasti(Database& db, const crow::json::rvalue& listaPa, int idPiano) {
         // L'alimento è l'unità minima: senza alimenti non si crea alcun pasto.
         if (!pa.has("alimenti") || pa["alimenti"].t() != crow::json::type::List) continue;
 
-        // Crea un solo pasto per questo pasto della settimana (giorno + tipo).
+        // Crea un solo pasto per un determinato pasto della settimana (giorno + tipo).
         Pasto pasto(0, idPiano, giornoNum, tipo);
         int idPasto = db.inserisciPasto(pasto);
 

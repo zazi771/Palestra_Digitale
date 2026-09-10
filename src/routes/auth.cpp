@@ -1,6 +1,3 @@
-//
-// Created by giorg on 04/09/2026.
-//
 
 #include "auth.h"
 #include "bcrypt_wrapper.h"
@@ -61,7 +58,7 @@ void registraAuthRoutes(crow::SimpleApp& app, Database& db) {
             return crow::response(409, R"({"errore":"Email già registrata"})");
         }
 
-        // data_registrazione = oggi (calcolata al volo in formato ISO)
+        // data_registrazione = oggi (calcolata in formato ISO)
         auto oggi = std::chrono::system_clock::now();
         auto tt = std::chrono::system_clock::to_time_t(oggi);
         std::tm tm = *std::localtime(&tt);

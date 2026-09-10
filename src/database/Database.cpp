@@ -8,9 +8,9 @@ Database::Database(const std::string& percorsoFile)
     db.exec("PRAGMA foreign_keys = ON;");
 }
 
-//
+
 // UTENTE
-//
+
 namespace {
 // Converte date (anno-mese-giorno) in stringa ISO "YYYY-MM-DD"
 date parseDate(const std::string& s) {
@@ -105,9 +105,9 @@ bool Database::eliminaUtente(int id) {
     return query.exec() > 0;
 }
 
-//
+
 // CARTELLA CLINICA
-//
+
 std::vector<Cartella_clinica> Database::getCartelleByCliente(int id_cliente) {
     std::vector<Cartella_clinica> risultato;
     SQLite::Statement query(db,
@@ -153,9 +153,9 @@ bool Database::inserisciCartella(const Cartella_clinica& c) {
     return query.exec() > 0;
 }
 
-//
+
 // CERTIFICAZIONE
-//
+
 std::optional<Certificazione> Database::getCertificazioneByEsperto(int id_esperto) {
     SQLite::Statement query(db,
         "SELECT id_certificazione, id_esperto, cv, certificazione, ente_rilascio, "
@@ -183,9 +183,9 @@ bool Database::inserisciCertificazione(const Certificazione& c) {
     return query.exec() > 0;
 }
 
-//
+
 // CIBO
-//
+
 std::vector<Cibo> Database::getTuttiCibi() {
     std::vector<Cibo> risultato;
     SQLite::Statement query(db, "SELECT id_cibo, nome, kcal, carboidrati, proteine, grassi FROM Cibo;");
@@ -222,9 +222,9 @@ int Database::inserisciCibo(const Cibo& c) {
     return (int)db.getLastInsertRowid();
 }
 
-//
+
 // ESERCIZIO
-//
+
 std::vector<Esercizio> Database::getTuttiEsercizi() {
     std::vector<Esercizio> risultato;
     SQLite::Statement query(db,
@@ -248,9 +248,9 @@ int Database::inserisciEsercizio(const Esercizio& e) {
     return (int)db.getLastInsertRowid();
 }
 
-//
+
 // PIANO ALIMENTARE (+ pasti + alimenti)
-//
+
 std::vector<Piano_alimentare> Database::getPianiByCliente(int id_cliente) {
     std::vector<Piano_alimentare> risultato;
     SQLite::Statement query(db,
@@ -375,9 +375,9 @@ bool Database::inserisciPastoCibo(const Pasto_cibo& pc) {
     return query.exec() > 0;
 }
 
-// =====================================================================
+
 // PROGRAMMA ALLENAMENTO (+ esercizi)
-// =====================================================================
+
 std::vector<Programma_allenamento> Database::getProgrammiByCliente(int id_cliente) {
     std::vector<Programma_allenamento> risultato;
     SQLite::Statement query(db,
@@ -489,9 +489,9 @@ bool Database::inserisciProgrammaEsercizio(const Programma_esercizio& pe) {
     return query.exec() > 0;
 }
 
-// =====================================================================
+
 // ASSEGNAZIONE PROGRAMMA <-> UTENTE
-// =====================================================================
+
 bool Database::assegnaProgramma(int id_utente, int id_programma, const std::string& data_inizio) {
     SQLite::Statement query(db,
         "INSERT INTO Utente_Programma (id_utente, id_programma, data_inizio, stato) VALUES (?, ?, ?, ?);");
@@ -525,9 +525,9 @@ bool Database::aggiornaStatoAssegnazione(int id_utente, int id_programma, const 
     return query.exec() > 0;
 }
 
-// =====================================================================
+
 // SESSIONE
-// =====================================================================
+
 std::vector<Sessione> Database::getSessioniByCliente(int id_cliente) {
     std::vector<Sessione> risultato;
     SQLite::Statement query(db,
@@ -554,9 +554,9 @@ int Database::inserisciSessione(const Sessione& s) {
     return (int)db.getLastInsertRowid();
 }
 
-// =====================================================================
+
 // FEEDBACK
-// =====================================================================
+
 int Database::inserisciFeedback(const Feedback& f) {
     SQLite::Statement query(db,
         "INSERT INTO Feedback (valutazione, commento, data, id_utente, id_programma, id_piano) VALUES (?, ?, ?, ?, ?, ?);");

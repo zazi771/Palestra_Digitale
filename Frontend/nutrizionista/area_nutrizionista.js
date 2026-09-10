@@ -1,8 +1,6 @@
-/* =========================================================
-   area_nutrizionista.js — Area Nutrizionista collegata al backend REST
-   ========================================================= */
+// area_nutrizionista.js — Area Nutrizionista collegata al backend REST
 
-/* ---------- BFCACHE: se ripristinato dalla cache dopo logout, torna alla home ---------- */
+//  BFCACHE: se ripristinato dalla cache dopo logout, torna alla home
 window.addEventListener('pageshow', (event) => {
     if (event.persisted && !localStorage.getItem('utente')) {
         window.location.href = '/';
@@ -16,7 +14,7 @@ let activeClientId = null;
 let pastoCounter = 0;
 let editingPlanId = null;
 
-/* ---------- UTIL ---------- */
+// UTIL
 function getUtente(){
     const raw = localStorage.getItem('utente');
     if(!raw) return null;
@@ -43,9 +41,7 @@ async function api(path, opts){
 const giorniOrdine = ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"];
 const giornoDaNumero = n => giorniOrdine[n-1] || giorniOrdine[0];
 
-/* =========================================================
-   INIT
-   ========================================================= */
+// INIT
 utente = getUtente();
 if(!utente || !utente.id) redirectHome();
 else init();
@@ -88,9 +84,7 @@ async function caricaClienti(){
     clients = (r.data.clienti || []).map(c => ({ ...c, piani: [] }));
 }
 
-/* =========================================================
-   GATE — CERTIFICAZIONE NUTRIZIONISTA
-   ========================================================= */
+// GATE — CERTIFICAZIONE NUTRIZIONISTA
 const certForm = document.getElementById("certForm");
 const certError = document.getElementById("certError");
 const certificazioneInput = document.getElementById("c-certificazione");
@@ -158,9 +152,6 @@ certForm.addEventListener("submit", async (e) => {
     const r = await api(`/api/nutrizionista/${utente.id}/certificazione`, { method: 'POST', body: fd });
     if(!r.ok){ certError.textContent = r.data.errore || "Errore salvataggio."; certError.hidden = false; return; }
 
-    //const chipText = document.getElementById("nutriChipText");
-    //const labels = {"nutrizionista":"Nutrizionista","biologo-nutrizionista":"Biologo Nutrizionista","dietista":"Dietista","medico-nutrizionista":"Medico Nutrizionista"};
-
     document.getElementById("nutriChip").hidden = false;
 
     document.getElementById("gate").style.display = "none";
@@ -169,9 +160,7 @@ certForm.addEventListener("submit", async (e) => {
     renderClients();
 });
 
-/* =========================================================
-   TABELLA CLIENTI
-   ========================================================= */
+// TABELLA CLIENTI
 function renderClients(){
     const body = document.getElementById("clientsBody");
     body.innerHTML = "";
@@ -196,9 +185,7 @@ function renderClients(){
     body.querySelectorAll("[data-view]").forEach(btn => btn.addEventListener("click", () => openViewModal(Number(btn.dataset.view))));
 }
 
-/* =========================================================
-   MODAL: NUOVO PIANO ALIMENTARE
-   ========================================================= */
+// MODAL: NUOVO PIANO ALIMENTARE
 const planOverlay = document.getElementById("planOverlay");
 const planForm = document.getElementById("planForm");
 const pastoList = document.getElementById("pastoList");
@@ -341,9 +328,7 @@ planForm.addEventListener("submit", async (e) => {
     renderClients();
 });
 
-/* =========================================================
-   MODAL: VEDI PIANI
-   ========================================================= */
+// MODAL: VEDI PIANI
 const viewOverlay = document.getElementById("viewOverlay");
 
 function renderStars(valutazione) {

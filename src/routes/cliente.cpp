@@ -1,6 +1,3 @@
-//
-// Created by giorg on 04/09/2026.
-//
 
 #include "cliente.h"
 #include <sstream>
@@ -8,66 +5,69 @@
 
 namespace  {
 
-    date parseDateISO(const std::string& s) {
-        std::istringstream iss(s);
-        int y, m, d;
-        char sep;
-        if (iss >> y >> sep >> m >> sep >> d) {
-            return date{std::chrono::year{y}, std::chrono::month{static_cast<unsigned>(m)},
-                        std::chrono::day{static_cast<unsigned>(d)}};
-        }
-        return date{};
+// Converte "YYYY-MM-DD" in date (year_month_day)
+date parseDateISO(const std::string& s) {
+    std::istringstream iss(s);
+    int y, m, d;
+    char sep;
+    if (iss >> y >> sep >> m >> sep >> d) {
+        return date{std::chrono::year{y}, std::chrono::month{static_cast<unsigned>(m)},
+                    std::chrono::day{static_cast<unsigned>(d)}};
     }
+    return date{};
+}
 
-    crow::json::wvalue cartellaToJson(const Cartella_clinica& c) {
-        crow::json::wvalue w;
-        w["id"] = c.getId();
-        w["id_cliente"] = c.getIdCliente();
-        w["data_rilevazione"] = c.getDataRilevazioneStr();
-        w["altezza_cm"] = c.getAltezza();
-        w["peso_kg"] = c.getPeso();
-        w["circonferenza_vita_cm"] = c.getCircVita();
-        w["circonferenza_fianchi_cm"] = c.getCircFianchi();
-        w["massa_grassa_percentuale"] = c.getMassaGrassa();
-        w["massa_magra_kg"] = c.getMassaMagra();
-        w["patologie"] = c.getPatologie();
-        w["allergie"] = c.getAllergie();
-        w["intolleranze_alimentari"] = c.getIntolleranze();
-        w["infortuni_pregressi"] = c.getInfortuni();
-        w["farmaci_assunti"] = c.getFarmaci();
-        w["livello_attivita_fisica"] = c.getLivelloAttivita();
-        w["obiettivo"] = c.getObiettivo();
-        w["note_mediche"] = c.getNoteMediche();
-        return w;
-    }
+// Costruisce l'oggetto JSON con i dati della cartella clinica dell'utente
+crow::json::wvalue cartellaToJson(const Cartella_clinica& c) {
+    crow::json::wvalue w;
+    w["id"] = c.getId();
+    w["id_cliente"] = c.getIdCliente();
+    w["data_rilevazione"] = c.getDataRilevazioneStr();
+    w["altezza_cm"] = c.getAltezza();
+    w["peso_kg"] = c.getPeso();
+    w["circonferenza_vita_cm"] = c.getCircVita();
+    w["circonferenza_fianchi_cm"] = c.getCircFianchi();
+    w["massa_grassa_percentuale"] = c.getMassaGrassa();
+    w["massa_magra_kg"] = c.getMassaMagra();
+    w["patologie"] = c.getPatologie();
+    w["allergie"] = c.getAllergie();
+    w["intolleranze_alimentari"] = c.getIntolleranze();
+    w["infortuni_pregressi"] = c.getInfortuni();
+    w["farmaci_assunti"] = c.getFarmaci();
+    w["livello_attivita_fisica"] = c.getLivelloAttivita();
+    w["obiettivo"] = c.getObiettivo();
+    w["note_mediche"] = c.getNoteMediche();
+    return w;
+}
 
-    // Converte la quantità di una riga pasto_cibo in kcal approssimative usando i cibi
-    double quantitaKcal(double kcal100, int grammi) {
-        return kcal100 * grammi / 100.0;
-    }
+// Converte la quantità di una riga pasto_cibo in kcal approssimative usando i cibi
+double quantitaKcal(double kcal100, int grammi) {
+    return kcal100 * grammi / 100.0;
+}
 
-    // Mappa id Esercizio -> Esercizio per arricchire i programmi con nome/gruppo/video.
-    std::unordered_map<int, Esercizio> mappaEsercizi(Database& db) {
-        std::unordered_map<int, Esercizio> m;
-        for (const auto& e : db.getTuttiEsercizi()) m.emplace(e.getId(), e);
-        return m;
-    }
+// Mappa id Esercizio -> Esercizio per popolare i programmi con nome/gruppo/video.
+std::unordered_map<int, Esercizio> mappaEsercizi(Database& db) {
+    std::unordered_map<int, Esercizio> m;
+    for (const auto& e : db.getTuttiEsercizi()) m.emplace(e.getId(), e);
+    return m;
+}
 
-    // Mappa id Cibo -> Cibo per arricchire i pasti con il nome dell'alimento.
-    std::unordered_map<int, Cibo> mappaCibi(Database& db) {
-        std::unordered_map<int, Cibo> m;
-        for (const auto& c : db.getTuttiCibi()) m.emplace(c.getId(), c);
-        return m;
-    }
+// Mappa id Cibo -> Cibo per popolare i pasti con il nome dell'alimento.
+std::unordered_map<int, Cibo> mappaCibi(Database& db) {
+    std::unordered_map<int, Cibo> m;
+    for (const auto& c : db.getTuttiCibi()) m.emplace(c.getId(), c);
+    return m;
+}
 
-    // Mappa id Programma -> AssegnazioneProgramma per arricchire i programmi con stato/data_inizio.
-    std::unordered_map<int, AssegnazioneProgramma> mappaAssegnazioni(Database& db, int id_cliente) {
-        std::unordered_map<int, AssegnazioneProgramma> m;
-        for (const auto& a : db.getAssegnazioniByCliente(id_cliente)) m.emplace(a.id_programma, a);
-        return m;
-    }
+// Mappa id Programma -> AssegnazioneProgramma per popolare i programmi con stato/data_inizio.
+std::unordered_map<int, AssegnazioneProgramma> mappaAssegnazioni(Database& db, int id_cliente) {
+    std::unordered_map<int, AssegnazioneProgramma> m;
+    for (const auto& a : db.getAssegnazioniByCliente(id_cliente)) m.emplace(a.id_programma, a);
+    return m;
+}
 
-    const std::vector<std::string> STATI_VALIDI = {"Non iniziato", "In corso", "Terminato"};
+//Possibili stati di assegnazione di un programma d'allenamento
+const std::vector<std::string> STATI_VALIDI = {"Non iniziato", "In corso", "Terminato"};
 }
 
 void registraClienteRoutes(crow::SimpleApp& app, Database& db) {
@@ -275,7 +275,6 @@ void registraClienteRoutes(crow::SimpleApp& app, Database& db) {
     });
     
     // PATCH /api/cliente/<id>/programmi/<id_programma>/stato  -> aggiorna stato assegnazione
-    // Body atteso: {"stato": "In corso"}  (valori ammessi: Non iniziato, In corso, Terminato)
     CROW_ROUTE(app, "/api/cliente/<int>/programmi/<int>/stato").methods(crow::HTTPMethod::PATCH)
     ([&db](const crow::request& req, int id, int idProgramma) {
         auto body = crow::json::load(req.body);

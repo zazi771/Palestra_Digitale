@@ -1,10 +1,10 @@
-/* =========================================================
+/*
    AREA CLIENTE — stili specifici (tabs, cartella clinica, progressi)
    Riusa componenti già definiti in styleHome.css e styleAreaNutrizionista.css
    (.gate, .form-grid, .field, .modal, .plan-card, .plan-tag, ecc.)
-   ========================================================= */
+*/
 
-/* ===================== TABS ===================== */
+/* TABS */
 .tabs{
     display:flex;
     gap:8px;
@@ -54,7 +54,7 @@
     line-height:1.6;
 }
 
-/* ===================== CARTELLA CLINICA — STORICO ===================== */
+/* CARTELLA CLINICA — STORICO  */
 .records-list{
     display:flex;
     flex-direction:column;
@@ -137,7 +137,7 @@
     .record-notes{grid-template-columns:1fr;}
 }
 
-/* ===================== PIANO / PROGRAMMA — RAGGRUPPATI PER GIORNO ===================== */
+/* PIANO / PROGRAMMA — RAGGRUPPATI PER GIORNO */
 .day-block{
     padding-top:16px;
     margin-top:16px;
@@ -152,7 +152,7 @@
     margin-bottom:10px;
 }
 
-/* ===================== PROGRESSI — STATS ===================== */
+/* PROGRESSI — STATS */
 .stats-row{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -185,7 +185,7 @@
     .stats-row{grid-template-columns:repeat(2,1fr);}
 }
 
-/* ===================== PROGRESSI — SESSIONI ===================== */
+/* PROGRESSI — SESSIONI */
 .sessioni-list{
     display:flex;
     flex-direction:column;
@@ -238,7 +238,7 @@
 .check-done span:last-child{color:var(--paper);}
 .check-missed span:last-child{color:var(--muted);text-decoration:line-through;}
 
-/* ===================== ALLENAMENTO — FILTRI PROGRAMMI ===================== */
+/* ALLENAMENTO — FILTRI PROGRAMMI */
 .filters-row{
     display:flex;
     flex-wrap:wrap;
@@ -263,7 +263,7 @@
 }
 .filters-row select:focus{outline:none;border-color:var(--coral);}
 
-/* ===================== ALLENAMENTO — CARD PROGRAMMA ===================== */
+/* ALLENAMENTO — CARD PROGRAMMA */
 .prog-card{
     background:var(--ink);
     border:1px solid var(--line);
@@ -343,7 +343,7 @@
     font-size:14px;
 }
 
-/* ===================== ALLENAMENTO — TIMER SESSIONE LIVE ===================== */
+/* ALLENAMENTO — TIMER SESSIONE LIVE */
 .timer-bar{
     display:flex;
     align-items:center;

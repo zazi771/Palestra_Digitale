@@ -54,7 +54,7 @@ body::before{
 .hero-brand .eyebrow {
     margin-bottom: 0; /* tolto perché ora lo spazio lo gestisce .hero-brand */
 }
-/* ---------- NAV ---------- */
+/* NAV */
 header{
     position:sticky; top:0; z-index:50;
     background:rgba(21,18,27,0.82);
@@ -111,7 +111,7 @@ nav{
     .nav-links{display:none;}
 }
 
-/* ---------- HERO ---------- */
+/* HERO */
 .hero{
     position:relative;
     padding:100px 32px 60px;
@@ -164,7 +164,7 @@ nav{
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    font-weight: normal; /* nel caso la tua classe .field label sia in bold */
+    font-weight: normal; /* nel caso la classe .field label sia in bold */
 }
 
 .radio-group input[type="radio"] {
@@ -273,7 +273,7 @@ nav{
     .pulse-stats{display:none;}
 }
 
-/* ---------- FEATURES ---------- */
+/*  FEATURES  */
 .section{
     position:relative;z-index:1;
     padding:100px 32px;
@@ -321,7 +321,7 @@ nav{
     .feature-grid{grid-template-columns:1fr;}
 }
 
-/* ---------- PROGRAMMI (rhythm/timeline as tempo, not numbered steps) ---------- */
+/*  PROGRAMMI (rhythm/timeline as tempo, not numbered steps) */
 .tempo{
     background:var(--ink-2);
     border-top:1px solid var(--line);
@@ -353,7 +353,7 @@ nav{
     .tempo-desc{max-width:100%;}
 }
 
-/* ---------- CTA / FOOTER ---------- */
+/* CTA / FOOTER */
 .cta-block{
     text-align:center;
     padding:120px 32px;
@@ -371,7 +371,7 @@ footer{
     flex-wrap:wrap;gap:16px;
 }
 
-/* ---------- MODAL ---------- */
+/* MODAL */
 .overlay{
     position:fixed;inset:0;
     background:rgba(10,8,13,0.7);
@@ -453,7 +453,7 @@ footer{
 .pane{display:none;}
 .pane.active{display:block;}
 
-/* l'attributo hidden deve sempre vincere le regole display dei componenti */
+/* l'attributo hidden vince le regole display dei componenti */
 [hidden]{display:none !important;}
 
 @media (prefers-reduced-motion: reduce){

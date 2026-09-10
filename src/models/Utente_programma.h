@@ -23,6 +23,7 @@ public:
     //Costruttore
     Utente_programma(int id_assegnazione, int id_utente, int id_programma, date data_inizio, string stato);
 
+    //Metodi
     int getId() const;
     int getIdUtente() const;
     int getIdProgramma() const;

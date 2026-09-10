@@ -25,7 +25,7 @@ public:
     //Costruttore
     Feedback(int id_feedback, int valutazione, string commento, date data, int id_utente, int id_programma, int id_piano);
 
-    //Getters
+    //Metodi
     int getIdFeedback() const;
     int getValutazione() const;
     string getCommento() const;

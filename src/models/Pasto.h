@@ -20,6 +20,7 @@ public:
     //Costruttore
     Pasto(int id_pasto, int id_piano, int giorno, string tipo_pasto);
 
+    //Metodi
     int getId() const;
     int getIdPiano() const;
     int getGiorno() const;

@@ -1,8 +1,6 @@
-/* =========================================================
-   area_cliente.js — Area Cliente collegata al backend REST
-   ========================================================= */
+// area_cliente.js — Area Cliente collegata al backend REST
 
-/* ---------- STATO ---------- */
+// STATO
 let utente = null; // dati utente dal backend
 let clinicalRecords = [];
 let pianoAlimentare = null;  // primo piano alimentare del cliente
@@ -11,23 +9,23 @@ let sessioni = [];
 let utenteCliente = null; // profilo dal backend
 let mieiFeedback = []; // feedback lasciati dal cliente
 
-/* ---------- BFCACHE: se ripristinato dalla cache dopo logout, torna alla home ---------- */
+// BFCACHE: se ripristinato dalla cache dopo logout, torna alla home
 window.addEventListener('pageshow', (event) => {
     if (event.persisted && !localStorage.getItem('utente')) {
         window.location.href = '/';
     }
 });
 
-/* ---------- STATO FILTRI ALLENAMENTO ---------- */
+// STATO FILTRI ALLENAMENTO
 let filtroObiettivo = "";
 let filtroLivello = "";
 let filtroDurata = "";
 
-/* ---------- STATO TIMER SESSIONE LIVE ---------- */
+// STATO TIMER SESSIONE LIVE
 let sessioneAttiva = null;   // { idProgramma, nomeProgramma, startedAt }
 let timerInterval = null;
 
-/* ---------- UTIL ---------- */
+// UTIL
 function getUtente(){
     const raw = localStorage.getItem('utente');
     if(!raw) return null;
@@ -64,9 +62,7 @@ async function api(path, opts){
     return { ok: res.ok, status: res.status, data };
 }
 
-/* =========================================================
-   INIT
-   ========================================================= */
+// INIT
 utente = getUtente();
 if(!utente || !utente.id) redirectHome();
 else init();
@@ -106,7 +102,7 @@ async function init(){
     renderAll();
 }
 
-/* ---------- CARICAMENTO DATI ---------- */
+// CARICAMENTO DATI
 async function caricaCartella(){
     const r = await api(`/api/cliente/${utente.id}/cartella-clinica`);
     if(!r.ok) return;
@@ -138,9 +134,7 @@ async function caricaFeedback(){
     mieiFeedback = r.data.feedback || [];
 }
 
-/* =========================================================
-   CAMPI CARTELLA CLINICA (condivisi tra gate e modale)
-   ========================================================= */
+// CAMPI CARTELLA CLINICA (condivisi tra gate e modale)
 const cartellaFields = [
     { id: "data", label: "Data rilevazione", type: "date", required: true, api: "data_rilevazione" },
     { id: "altezza", label: "Altezza (cm)", type: "number", required: true, min: 0, step: 1, api: "altezza_cm" },
@@ -211,9 +205,7 @@ function clearCartellaFields(suffix){
     });
 }
 
-/* =========================================================
-   GATE — CARTELLA CLINICA INIZIALE
-   ========================================================= */
+// GATE — CARTELLA CLINICA INIZIALE
 document.getElementById("cartellaFieldsGate").innerHTML = buildCartellaFieldsHTML("gate");
 const cartellaForm = document.getElementById("cartellaForm");
 const cartellaError = document.getElementById("cartellaError");
@@ -237,9 +229,7 @@ cartellaForm.addEventListener("submit", async (e) => {
     renderRecords();
 });
 
-/* =========================================================
-   TABS
-   ========================================================= */
+// TABS
 document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -249,9 +239,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     });
 });
 
-/* =========================================================
-   TAB: CARTELLA CLINICA
-   ========================================================= */
+// TAB: CARTELLA CLINICA
 document.getElementById("cartellaFieldsModal").innerHTML = buildCartellaFieldsHTML("modal");
 const recordOverlay = document.getElementById("recordOverlay");
 const recordForm = document.getElementById("recordForm");
@@ -334,9 +322,7 @@ function renderRecords(){
     });
 }
 
-/* =========================================================
-   TAB: PIANO ALIMENTARE (dal backend)
-   ========================================================= */
+//TAB: PIANO ALIMENTARE (dal backend)
 function renderPianoAlimentare(){
     const container = document.getElementById("pianoAlimentareView");
     if(!pianoAlimentare){
@@ -386,9 +372,7 @@ function renderPianoAlimentare(){
     renderFeedbackList(feedbackPiano, "feedback-list-piano");
 }
 
-/* =========================================================
-   TAB: ALLENAMENTO (dal backend) — lista filtrabile + tracking sessioni
-   ========================================================= */
+// TAB: ALLENAMENTO (dal backend) — lista filtrabile + tracking sessioni
 const STATO_CLASSE = { "Non iniziato": "non-iniziato", "In corso": "in-corso", "Terminato": "terminato" };
 function durataBucket(settimane){
     if(settimane <= 6) return "breve";
@@ -507,7 +491,7 @@ async function impostaInCorso(idProgramma){
     renderProgrammi();
 }
 
-/* ---------- TIMER SESSIONE LIVE ---------- */
+// TIMER SESSIONE LIVE
 function avviaSessione(idProgramma){
     if(sessioneAttiva) return; // una sessione alla volta
     const programma = programmiAssegnati.find(p => p.id === idProgramma);
@@ -574,9 +558,7 @@ document.getElementById("sessioneNonCompletata").addEventListener("click", () =>
 document.getElementById("sessioneClose").addEventListener("click", () => { sessioneOverlay.classList.remove("open"); document.body.style.overflow = ""; });
 sessioneOverlay.addEventListener("click", (e) => { if(e.target === sessioneOverlay) { sessioneOverlay.classList.remove("open"); document.body.style.overflow = ""; } });
 
-/* =========================================================
-   MODAL: FEEDBACK
-   ========================================================= */
+// MODAL: FEEDBACK
 const feedbackOverlay = document.getElementById("feedbackOverlay");
 let feedbackTarget = null; // { tipo: "programma"|"piano", id: number }
 
@@ -676,9 +658,7 @@ function renderFeedbackList(feedbackList, containerId) {
     });
 }
 
-/* =========================================================
-   TAB: I MIEI PROGRESSI (sessioni dal backend)
-   ========================================================= */
+// TAB: I MIEI PROGRESSI (sessioni dal backend)
 function renderStats(){
     const container = document.getElementById("statsRow");
     const totaleTempo = sessioni.reduce((s,x) => s + (x.tempo_minuti||0), 0);
@@ -732,9 +712,7 @@ function renderSessioni(){
     });
 }
 
-/* =========================================================
-   RENDER GLOBALE
-   ========================================================= */
+// RENDER GLOBALE
 function renderAll(){
     renderRecords();
     renderPianoAlimentare();

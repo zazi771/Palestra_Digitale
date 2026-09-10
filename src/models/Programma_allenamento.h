@@ -24,6 +24,7 @@ public:
     Programma_allenamento(int id_programma, int id_trainer, string nome, string obiettivo, string livello_difficolta,
     int durata_settimane, string descrizione);
 
+    //Metodi
     int getId() const;
     int getIdTrainer() const;
     string getNome() const;

@@ -24,6 +24,7 @@ public:
     //Costruttore
     Sessione(int id_sessione, int id_utente, int id_programma, date data, int tempo_minuti, int completato);
 
+    //Metodi
     int getId() const;
     int getIdUtente() const;
     int getIdProgramma() const;

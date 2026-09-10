@@ -1,3 +1,4 @@
+
 #include "database/Database.h"
 #include "routes/auth.h"
 #include "routes/cliente.h"
@@ -11,8 +12,7 @@
 
 namespace {
 
-// Determina la cartella del progetto a partire dal path dell'eseguibile.
-// L'eseguibile vive in <progetto>/cmake-build-debug/, quindi risaliamo di un livello.
+// Funzione per determinare la cartella del progetto a partire dal path dell'eseguibile
 std::string cartellaProgetto() {
     char buf[MAX_PATH];
     DWORD n = GetModuleFileNameA(nullptr, buf, MAX_PATH);
@@ -34,8 +34,7 @@ std::string UPLOADS;
 
 crow::response serviFile(const std::string& relativo) {
     crow::response res(200);
-    // Usiamo la variante "unsafe" (senza sanitizzazione del percorso): i percorsi sono
-    // assoluti e hardcoded, e la sanitizzazione di Crow sostituirebbe i ':' della lettera di drive.
+    // Variante "unsafe" (senza sanitizzazione del percorso)
     res.set_static_file_info_unsafe(BASE + relativo);
     return res;
 }
@@ -53,8 +52,7 @@ crow::response serviUpload(const std::string& nome) {
     return res;
 }
 
-// Serve qualunque file dentro Frontend/, validando che il path richiesto
-// non esca dalla cartella (protezione da path traversal, es. "../../PalestraDigitale.db").
+// Serve qualunque file dentro Frontend/, validando che il path richiesto non esca dalla cartella
 crow::response serviFileGenerico(std::string richiesto) {
     // Rifiuta subito pattern sospetti prima ancora di toccare il filesystem
     if (richiesto.empty() || richiesto.find("..") != std::string::npos) {
@@ -98,7 +96,7 @@ int main() {
         UPLOADS = PROGETTO + "uploads\\";
         CreateDirectoryA(UPLOADS.c_str(), nullptr);
 
-        // Il percorso del DB è risolto rispetto alla cartella del progetto
+        // Percorso del DB risolto rispetto alla cartella del progetto
         Database db(PROGETTO + "PalestraDigitale.db");
 
         crow::SimpleApp app;
@@ -116,10 +114,7 @@ int main() {
         registraTrainerRoutes(app, db, UPLOADS);
         registraNutrizionistaRoutes(app, db, UPLOADS);
 
-        // Route generica per QUALSIASI altro file dentro Frontend/
-        // (home.html, home.css, home.js, cliente/area_cliente.css, assets/logo.jpg, ecc.)
-        // Registrata per ultima: Crow dà priorità ai segmenti letterali (es. /uploads/...)
-        // rispetto al parametro <path>, ma è buona norma tenerla in fondo al file.
+        // Route generica per qualsiasi altro file dentro Frontend/
         CROW_ROUTE(app, "/<path>")
         ([](const std::string& path) { return serviFileGenerico(path); });
 

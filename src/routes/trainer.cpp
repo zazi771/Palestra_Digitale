@@ -1,6 +1,3 @@
-//
-// Created by giorg on 04/09/2026.
-//
 
 #include "trainer.h"
 #include "uploads.h"
@@ -17,7 +14,7 @@ std::unordered_map<int, Esercizio> mappaEsercizi(Database& db) {
     return m;
 }
 
-// Inserisce gli esercizi ricevuti dal client (crea o riusa le righe Esercizio) per un programma.
+// Inserisce gli esercizi (crea o lo cerca nel db) per un programma.
 void salvaEsercizi(Database& db, const crow::json::rvalue& listaEs, int idProgramma) {
     if (listaEs.t() != crow::json::type::List) return;
     int ordine = 1;
@@ -46,7 +43,7 @@ double arrotonda(double v, int dec) {
     return std::round(v * f) / f;
 }
 
-
+// Converte "YYYY-MM-DD" in date (year_month_day)
 date parseDateISO(const std::string& s) {
     std::istringstream iss(s);
     int y, m, d;
@@ -276,7 +273,7 @@ void registraTrainerRoutes(crow::SimpleApp& app, Database& db, const std::string
                 return crow::response(400, R"({"errore":"Campi obbligatori mancanti"})");
             }
 
-            // Verifica che il piano esista per questo cliente e, se esiste, che appartenga a questo trainer
+            // Verifica che il piano esista per un determinato cliente e, se esiste, che appartenga a un determinato trainer
             bool presente = false, diAltroTrainer = false;
             for (const auto& pr : db.getProgrammiByCliente(clienteId)) {
                 if (pr.getId() != pianoId) continue;

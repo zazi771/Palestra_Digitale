@@ -24,6 +24,7 @@ public:
     Programma_esercizio(int id_programma_esercizio, int id_programma, int id_esercizio, int ordine, int serie,
         string ripetizioni, int recupero_sec);
 
+    //Metodi
     int getId() const;
     int getIdProgramma() const;
     int getIdEsercizio() const;

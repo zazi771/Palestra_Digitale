@@ -1,8 +1,6 @@
-/* =========================================================
-   area_trainer.js — Area Trainer collegata al backend REST
-   ========================================================= */
+// area_trainer.js — Area Trainer collegata al backend REST
 
-/* ---------- BFCACHE: se ripristinato dalla cache dopo logout, torna alla home ---------- */
+// BFCACHE: se ripristinato dalla cache dopo logout, torna alla home
 window.addEventListener('pageshow', (event) => {
     if (event.persisted && !localStorage.getItem('utente')) {
         window.location.href = '/';
@@ -16,7 +14,7 @@ let activeClientId = null;
 let exerciseCounter = 0;
 let editingPlanId = null;
 
-/* ---------- UTIL ---------- */
+// UTIL
 function getUtente(){
     const raw = localStorage.getItem('utente');
     if(!raw) return null;
@@ -40,9 +38,7 @@ async function api(path, opts){
     return { ok: res.ok, status: res.status, data };
 }
 
-/* =========================================================
-   INIT
-   ========================================================= */
+// INIT
 utente = getUtente();
 if(!utente || !utente.id) redirectHome();
 else init();
@@ -96,9 +92,7 @@ async function caricaClienti(){
     clients = (r.data.clienti || []).map(c => ({ ...c, piani: [] }));
 }
 
-/* =========================================================
-   GATE — CERTIFICAZIONE TRAINER
-   ========================================================= */
+// GATE — CERTIFICAZIONE TRAINER
 const certForm = document.getElementById("certForm");
 const certError = document.getElementById("certError");
 const certificazioneInput = document.getElementById("c-certificazione");
@@ -157,7 +151,7 @@ certForm.addEventListener("submit", async (e) => {
         return;
     }
 
-    // Verifica se la certificazione è già scaduta (deve essere maggiore di oggi)
+    // Verifica se la certificazione è già scaduta (deve essere maggiore della data odierna)
     if(dataScadenza < oggi){
         certError.textContent = "La data di scadenza deve essere maggiore o uguale alla data attuale.";
         certError.hidden = false;
@@ -186,9 +180,7 @@ certForm.addEventListener("submit", async (e) => {
     renderClients();
 });
 
-/* =========================================================
-   TABELLA CLIENTI
-   ========================================================= */
+// TABELLA CLIENTI
 function renderClients(){
     const body = document.getElementById("clientsBody");
     body.innerHTML = "";
@@ -215,9 +207,7 @@ function renderClients(){
     body.querySelectorAll("[data-progress]").forEach(btn => btn.addEventListener("click", () => openProgressModal(Number(btn.dataset.progress))));
 }
 
-/* =========================================================
-   MODAL: NUOVO PIANO ALLENAMENTO
-   ========================================================= */
+// MODAL: NUOVO PIANO ALLENAMENTO
 const planOverlay = document.getElementById("planOverlay");
 const planForm = document.getElementById("planForm");
 const exerciseList = document.getElementById("exerciseList");
@@ -334,9 +324,7 @@ planForm.addEventListener("submit", async (e) => {
     renderClients();
 });
 
-/* =========================================================
-   MODAL: VEDI PIANI
-   ========================================================= */
+// MODAL: VEDI PIANI
 const viewOverlay = document.getElementById("viewOverlay");
 
 function renderStars(valutazione) {
@@ -436,9 +424,7 @@ document.getElementById("viewClose").addEventListener("click", closeViewModal);
 viewOverlay.addEventListener("click", (e) => { if(e.target === viewOverlay) closeViewModal(); });
 function closeViewModal(){ viewOverlay.classList.remove("open"); document.body.style.overflow = ""; }
 
-/* =========================================================
-   MODAL: PROGRESSI CLIENTE
-   ========================================================= */
+// MODAL: PROGRESSI CLIENTE
 const progressOverlay = document.getElementById("progressOverlay");
 
 async function openProgressModal(clientId){

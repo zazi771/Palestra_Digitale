@@ -1,4 +1,4 @@
-/* ---- Gestione modale (login/signup tabs) ---- */
+/* Gestione modale (login/signup tabs) */
 function openModal(which){
     document.getElementById('overlay').classList.add('open');
     switchTab(which);
@@ -18,7 +18,7 @@ document.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape') closeModal();
 });
 
-/* ---- Redirect per ruolo ---- */
+/* Redirect per ruolo */
 function redirectByRole(ruolo){
     switch(ruolo){
         case 'cliente':      window.location.href = '/cliente/area_cliente.html'; break;
@@ -45,7 +45,7 @@ function hideError(paneId){
     if(el) el.hidden = true;
 }
 
-/* ---- LOGIN ---- */
+/* LOGIN */
 (function(){
     const form = document.getElementById('pane-login').querySelector('form');
     form.addEventListener('submit', async (e)=>{
@@ -71,7 +71,7 @@ function hideError(paneId){
     });
 })();
 
-/* ---- REGISTRAZIONE ---- */
+/* REGISTRAZIONE */
 (function(){
     const form = document.getElementById('pane-signup').querySelector('form');
     form.addEventListener('submit', async (e)=>{
@@ -106,7 +106,7 @@ function hideError(paneId){
     });
 })();
 
-/* ---- Se l'utente è già loggato, redirect diretto ---- */
+/* Se l'utente è già loggato, redirect diretto */
 (function(){
     const raw = localStorage.getItem('utente');
     if(raw){

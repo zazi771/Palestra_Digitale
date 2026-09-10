@@ -21,6 +21,7 @@ public:
     //Costruttore
     Piano_alimentare(int id_piano, int id_nutrizionista, string nome, string descrizione, int id_cliente);
 
+    //Metodi
     int getId() const;
     int getIdNutrizionista() const;
     string getNome() const;
