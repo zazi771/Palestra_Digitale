@@ -459,7 +459,7 @@ bool Database::eliminaProgramma(int id_programma) {
 std::vector<Programma_esercizio> Database::getEserciziByProgramma(int id_programma) {
     std::vector<Programma_esercizio> risultato;
     SQLite::Statement query(db,
-        "SELECT id_programma_esercizio, id_programma, id_esercizio, ordine, serie, ripetizioni, recupero_seci "
+        "SELECT id_programma_esercizio, id_programma, id_esercizio, ordine, serie, ripetizioni, recupero_sec "
         "FROM Programma_esercizio WHERE id_programma = ? ORDER BY ordine;");
     query.bind(1, id_programma);
     while (query.executeStep()) {
@@ -478,7 +478,7 @@ bool Database::eliminaEserciziByProgramma(int id_programma) {
 
 bool Database::inserisciProgrammaEsercizio(const Programma_esercizio& pe) {
     SQLite::Statement query(db,
-        "INSERT INTO Programma_esercizio (id_programma, id_esercizio, ordine, serie, ripetizioni, recupero_seci) "
+        "INSERT INTO Programma_esercizio (id_programma, id_esercizio, ordine, serie, ripetizioni, recupero_sec) "
         "VALUES (?, ?, ?, ?, ?, ?);");
     query.bind(1, pe.getIdProgramma());
     query.bind(2, pe.getIdEsercizio());
