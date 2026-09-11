@@ -65,6 +65,7 @@
 .cert-form input[type="text"],
 .cert-form input[type="date"],
 .cert-form select,
+.cert-form textarea,
 .modal input[type="text"],
 .modal input[type="number"],
 .modal input[type="url"],
@@ -82,9 +83,11 @@
     font-size:14px;font-family:inherit;
     transition:border-color .15s ease;
 }
-.modal textarea{resize:vertical;min-height:64px;}
+.modal textarea,
+.cert-form textarea{resize:vertical;min-height:64px;}
 .cert-form input:focus,
 .cert-form select:focus,
+.cert-form textarea:focus,
 .modal input:focus,
 .modal select:focus,
 .modal textarea:focus{
