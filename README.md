@@ -89,7 +89,7 @@ lato server (login tramite oggetto utente in `localStorage`).
 | GET | /{path} | Qualsiasi file dentro Frontend/ (con controllo traversamento) |
 
 ## Schema del database
-11 tabelle in `PalestraDigitale.db`: **Utente**, **Cartella_clinica**,
+13 tabelle in `PalestraDigitale.db`: **Utente**, **Cartella_clinica**,
 **Certificazione**, **Cibo**, **Esercizio**, **Piano_alimentare**, **Pasto**,
 **Pasto_cibo**, **Programma_allenamento**, **Programma_esercizio**,
 **Sessione**, **Feedback**, **Utente_Programma** (assegnazioni).
